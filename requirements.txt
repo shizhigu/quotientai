@@ -1,5 +1,30 @@
+# Core ADK and FastAPI
+google-adk==1.5.0
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Model and AI dependencies
+google-genai
+openai
+python-dotenv
+
+# MCP and search tools
+langchain-community
+tavily-python
+
+# Email and API integrations
 google-api-python-client==2.157.0
 google-auth-httplib2
 google-auth-oauthlib
 email-validator
+requests
+
+# Data processing
 python-dateutil
+pydantic>=2.0.0
+
+# Database
+sqlalchemy
+
+# Deployment and monitoring
+gunicorn

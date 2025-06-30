@@ -125,6 +125,18 @@ class RunnerResponse(BaseModel):
     response: str
     executionTime: Optional[float] = None
 
+# =================== 健康检查端点 ===================
+
+@app.get("/health")
+async def health_check():
+    """健康检查端点，用于容器和负载均衡器监控"""
+    return {"status": "healthy", "service": "creatoros", "version": "1.0.0"}
+
+@app.get("/")
+async def root():
+    """根路径重定向到健康检查"""
+    return {"message": "Creator OS API is running", "docs": "/docs", "health": "/health"}
+
 # =================== 自定义Endpoint ===================
 
 @app.post("/custom/chat", response_model=RunnerResponse)
@@ -322,5 +334,6 @@ async def get_session_state(userId: str, sessionId: str):
         raise HTTPException(status_code=500, detail=f"Failed to get or create session: {str(e)}")
 
 if __name__ == "__main__":
-    # 使用uvicorn启动服务器
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080))) 
+    # 使用uvicorn启动服务器，支持Render平台的PORT环境变量
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port) 
