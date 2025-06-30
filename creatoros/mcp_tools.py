@@ -7,7 +7,7 @@ import os
 
 perplexity_mcp_tools = MCPToolset(
     connection_params=StdioConnectionParams(
-        timeout=60,
+        timeout=300,
         server_params=StdioServerParameters(
             env={   
                 "PERPLEXITY_API_KEY": os.getenv("PERPLEXITY_API_KEY"),
