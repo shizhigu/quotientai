@@ -77,7 +77,7 @@ ALLOWED_ORIGINS = ["http://localhost", "http://localhost:8080", "*"]
 SERVE_WEB_INTERFACE = True
 
 # 简化配置：统一使用SQLite存储
-SESSION_DB_URL = "postgresql://adk_session_service_user:Fal6imEQAx2ur1u3zOW5FHhfFTpcaxsV@dpg-d1h5u7ili9vc73bcidi0-a.oregon-postgres.render.com/adk_session_service"
+SESSION_DB_URL = os.getenv("SESSION_DB_URL") # "postgresql://adk_session_service_user:Fal6imEQAx2ur1u3zOW5FHhfFTpcaxsV@dpg-d1h5u7ili9vc73bcidi0-a.oregon-postgres.render.com/adk_session_service"
 
 
 print(f"💾 Using SQLite database: {SESSION_DB_URL}")
