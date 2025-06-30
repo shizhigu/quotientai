@@ -7,6 +7,7 @@ uvicorn[standard]>=0.24.0
 google-genai
 openai
 python-dotenv
+litellm
 
 # MCP and search tools
 langchain-community
@@ -25,6 +26,7 @@ pydantic>=2.0.0
 
 # Database
 sqlalchemy
+psycopg2-binary  # PostgreSQL driver for DatabaseSessionService
 
 # Deployment and monitoring
 gunicorn

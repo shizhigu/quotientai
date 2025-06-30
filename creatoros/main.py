@@ -41,25 +41,31 @@ async def get_final_response(runner: Runner, user_id: str, session_id: str, mess
     all_events = []
     
     # 收集所有事件，不要提前break
-    async for event in runner.run_async(
-        user_id=user_id,
-        session_id=session_id,
-        new_message=content
-    ):
-        all_events.append(event)
-        # print(f"📅 Event: Author={event.author}, Final={event.is_final_response()}, Content={event.content.parts[0].text[:100] if event.content and event.content.parts else 'No content'}...")
+    try:
+        print(f"🚀 Starting agent execution for user={user_id}, session={session_id}")
+        async for event in runner.run_async(
+            user_id=user_id,
+            session_id=session_id,
+            new_message=content
+        ):
+            all_events.append(event)
+            # print(f"📅 Event: Author={event.author}, Final={event.is_final_response()}, Content={event.content.parts[0].text[:100] if event.content and event.content.parts else 'No content'}...")
+            
+
+            # 只在收到事件时更新响应，但不要break
+            if event.is_final_response():
+                if event.content and event.content.parts:
+                    final_response_text = event.content.parts[0].text
+                elif event.actions and event.actions.escalate:
+                    final_response_text = f"Agent escalated: {event.error_message or 'No specific message.'}"
+                    print(f"⚠️ Agent escalated: {event.author}")
         
-        # 只在收到事件时更新响应，但不要break
-        if event.is_final_response():
-            if event.content and event.content.parts:
-                final_response_text = event.content.parts[0].text
-                print(f"✅ Final response from {event.author}: {final_response_text[:200]}...")
-            elif event.actions and event.actions.escalate:
-                final_response_text = f"Agent escalated: {event.error_message or 'No specific message.'}"
-                print(f"⚠️ Agent escalated: {event.author}")
-    
-    print(f"🏁 Workflow completed. Total events: {len(all_events)}")
-    return final_response_text
+        print(f"🏁 Workflow completed. Total events: {len(all_events)}")
+        return final_response_text
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise
 
 # 获取项目根目录
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -71,7 +77,9 @@ ALLOWED_ORIGINS = ["http://localhost", "http://localhost:8080", "*"]
 SERVE_WEB_INTERFACE = True
 
 # 简化配置：统一使用SQLite存储
-SESSION_DB_URL = "sqlite:///../test5.db"
+SESSION_DB_URL = "postgresql://adk_session_service_user:Fal6imEQAx2ur1u3zOW5FHhfFTpcaxsV@dpg-d1h5u7ili9vc73bcidi0-a.oregon-postgres.render.com/adk_session_service"
+
+
 print(f"💾 Using SQLite database: {SESSION_DB_URL}")
 
 # 创建ADK FastAPI应用
@@ -175,7 +183,7 @@ async def run_chat_agent(request: RunnerRequest):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Chat failed: {type(e).__name__}: {str(e)}")
 
 @app.post("/custom/deal-analysis", response_model=DealAnalysisResponse)
 async def run_deal_intelligence_agent(request: DealAnalysisRequest):
@@ -287,7 +295,9 @@ async def run_deal_intelligence_agent(request: DealAnalysisRequest):
         )
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Deal analysis failed: {type(e).__name__}: {str(e)}")
 
 
 

@@ -8,23 +8,36 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
+ENV GOOGLE_APPLICATION_CREDENTIALS=/env/secrets/marketa-459704-64f65195b184.json
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     curl \
+    git \
+    libpq-dev \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js and npm for MCP tools (required for perplexity-mcp)
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs
 
-# Install global MCP packages
-RUN npm install -g perplexity-mcp
+# Install uv for Python package management (needed for uvx command)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+
+RUN git clone https://github.com/ppl-ai/modelcontextprotocol.git
+RUN cd modelcontextprotocol/perplexity-ask && npm install
+
+
 
 # Copy requirements first for better Docker layer caching
 COPY requirements.txt .
+
+# COPY .env .
+# COPY marketa-459704-64f65195b184.json .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip

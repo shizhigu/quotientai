@@ -11,10 +11,10 @@ perplexity_mcp_tools = MCPToolset(
         server_params=StdioServerParameters(
             env={   
                 "PERPLEXITY_API_KEY": os.getenv("PERPLEXITY_API_KEY"),
-                "PERPLEXITY_MODEL": "sonar-reasoning-pro"
+                # "PERPLEXITY_MODEL": "sonar-reasoning-pro"
             },
-            command="uvx",
-            args=["perplexity-mcp"],
+            command="npx",
+            args=["-y", "/app/modelcontextprotocol/perplexity-ask"],
         )
     )
 )
