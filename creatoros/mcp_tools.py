@@ -1,5 +1,6 @@
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioServerParameters, StdioConnectionParams
 from google.adk.tools.langchain_tool import LangchainTool
+from google.adk.tools import LongRunningFunctionTool
 from langchain_community.tools import TavilySearchResults
 from dotenv import load_dotenv
 load_dotenv()
@@ -14,7 +15,7 @@ perplexity_mcp_tools = MCPToolset(
                 # "PERPLEXITY_MODEL": "sonar-reasoning-pro"
             },
             command="npx",
-            args=["-y", "/app/modelcontextprotocol/perplexity-ask"],
+            args=["-y", "server-perplexity-ask"],
         )
     )
 )
@@ -22,7 +23,7 @@ perplexity_mcp_tools = MCPToolset(
 
 # Instantiate the LangChain tool
 
-os.environ["TAVILY_API_KEY"] = os.getenv("TAVILY_API_KEY")
+# os.environ["TAVILY_API_KEY"] = os.getenv("TAVILY_API_KEY")
 tavily_tool_instance = TavilySearchResults(
     max_results=3,
     search_depth="advanced",
@@ -32,6 +33,5 @@ tavily_tool_instance = TavilySearchResults(
 )
 
 # Wrap it with LangchainTool for ADK
-adk_tavily_tool = LangchainTool(tool=tavily_tool_instance)
-
+adk_tavily_tool = LongRunningFunctionTool(LangchainTool(tool=tavily_tool_instance))
 
