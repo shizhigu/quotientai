@@ -1,12 +1,12 @@
 from google.adk.agents.llm_agent import LlmAgent
 from creatoros.state_keys import STATE_NEGOTIATION_INTELLIGENCE, STATE_CREATOR_VALUE_ASSESSMENT, STATE_BRAND_INTELLIGENCE_SUMMARY, STATE_INQUIRY_EMAIL, STATE_PRICING_MODEL_CALCULATION
 from creatoros.mcp_tools import perplexity_mcp_tools, adk_tavily_tool
-from llm_models import gemini_2_5_pro
+from agent_models import negotiation_intelligence_agent_model
 
 class NegotiationIntelligenceAgent(LlmAgent):
     def __init__(self):
         super().__init__(
-            model=gemini_2_5_pro,
+            model=negotiation_intelligence_agent_model,
             name="NegotiationIntelligenceAgent",
             instruction=f"""
 You are a Creator's Negotiation Advocate Agent. Your ONLY job is to protect the creator's interests and provide them with powerful negotiation strategies they can use when **PROACTIVELY REACHING OUT TO BRANDS** with cold outreach emails and subsequent negotiations.

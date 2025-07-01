@@ -1,13 +1,13 @@
 from google.adk.agents import LlmAgent
 from creatoros.state_keys import STATE_YOUTUBE_CREATOR_PROFILE, STATE_BRAND_INTELLIGENCE_SUMMARY, STATE_CREATOR_VALUE_ASSESSMENT
 from google.genai import types
-from llm_models import gemini_2_0_flash
+from agent_models import creator_value_assessment_agent_model
 
 class CreatorValueAssessmentAgent(LlmAgent):
     def __init__(self):
         super().__init__(
             name="CreatorValueAssessmentAgent",
-            model=gemini_2_0_flash,
+            model=creator_value_assessment_agent_model,
             instruction=f"""
                 ## 1. Role
 

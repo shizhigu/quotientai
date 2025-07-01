@@ -1,17 +1,17 @@
 from google.adk.agents import LlmAgent
 from creatoros.state_keys import STATE_NEGOTIATION_INTELLIGENCE, STATE_PRICING_MODEL_CALCULATION, STATE_GENERATED_PROPOSAL_EMAIL, STATE_BRAND_NAME, STATE_YOUTUBE_CREATOR_PROFILE
 from datetime import datetime
-from llm_models import gemini_2_0_flash
+from agent_models import proposal_email_agent_model
 
 async def get_today_date() -> str:
     """Get today's date in YYYY-MM-DD format for email headers."""
-    return datetime.now().strftime("%Y-%m-%d")
+    return datetime.now().strftime("%m/%d/%Y")
 
 class ProposalEmailAgent(LlmAgent):
     def __init__(self):
         super().__init__(
             name="ProposalEmailAgent",
-            model=gemini_2_0_flash,
+            model=proposal_email_agent_model,
             instruction=f"""
                 ## Role Definition
 

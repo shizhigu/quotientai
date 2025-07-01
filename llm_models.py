@@ -12,7 +12,7 @@ gemini_2_5_pro = LiteLlm(
                 model="openrouter/google/gemini-2.5-pro",
                 api_key=OPENROUTER_API_KEY,
                 base_url=OPENROUTER_BASE_URL,
-                temperature=0.1
+                temperature=1.6
             )
 
 
@@ -20,7 +20,7 @@ gemini_2_5_flash = LiteLlm(
                 model="openrouter/google/gemini-2.5-flash-preview-05-20",
                 api_key=OPENROUTER_API_KEY,
                 base_url=OPENROUTER_BASE_URL,
-                temperature=0.1
+                temperature=0.2
             )
 
 
@@ -28,7 +28,7 @@ gemini_2_0_flash_lite = LiteLlm(
                 model="openrouter/google/gemini-2.0-flash-lite-001",
                 api_key=OPENROUTER_API_KEY,
                 base_url=OPENROUTER_BASE_URL,
-                temperature=0.1
+                temperature=0.2
             )
 
 
@@ -36,7 +36,7 @@ gemini_2_0_flash = LiteLlm(
                 model="openrouter/google/gemini-2.0-flash-001",
                 api_key=OPENROUTER_API_KEY,
                 base_url=OPENROUTER_BASE_URL,
-                temperature=0.1
+                temperature=0.2
             )
 
 
@@ -52,5 +52,5 @@ openai_o3 = LiteLlm(
                 model="openrouter/openai/o3",
                 api_key=OPENROUTER_API_KEY,
                 base_url=OPENROUTER_BASE_URL,
-                temperature=0.1
+                temperature=0.2
             )

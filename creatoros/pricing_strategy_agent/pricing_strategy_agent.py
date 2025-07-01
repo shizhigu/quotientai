@@ -2,12 +2,11 @@ from google.adk.agents.llm_agent import LlmAgent
 from creatoros.state_keys import STATE_PRICING_MODEL_CALCULATION, STATE_CREATOR_VALUE_ASSESSMENT, STATE_BRAND_INTELLIGENCE_SUMMARY, STATE_DEAL_DELIVERABLES
 # from creatoros.mcp_tools import perplexity_mcp_tools
 from google.genai import types
-from llm_models import *
-
+from agent_models import pricing_strategy_agent_model
 class PricingStrategyAgent(LlmAgent):
     def __init__(self):
         super().__init__(
-            model=sonar_reasoning_pro,
+            model=pricing_strategy_agent_model,
             name="PricingStrategyAgent",
             instruction=f"""
             You are an **Advanced Pricing Strategy & Market Intelligence Agent**. Your mission is to conduct efficient, targeted market research and execute precise pricing calculations for creator-brand collaborations. You leverage your advanced reasoning capabilities to get comprehensive insights through structured analysis.
@@ -19,7 +18,7 @@ class PricingStrategyAgent(LlmAgent):
 
             ## Input Context
             
-            **Creator Profile:**
+            **Creator Value Assessment:**
             {{{STATE_CREATOR_VALUE_ASSESSMENT}}}
             
             **Brand & Industry Intelligence:**
