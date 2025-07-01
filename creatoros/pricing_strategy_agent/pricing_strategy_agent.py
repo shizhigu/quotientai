@@ -76,7 +76,8 @@ class PricingStrategyAgent(LlmAgent):
 
             ## Required Output Format
 
-            Your output must be a comprehensive JSON object that demonstrates efficient analysis utilization:
+            Your output must be a comprehensive JSON object that demonstrates efficient analysis utilization.
+            - You MUST ONLY output the JSON object strictly in the format below. Do not include any explanatory text, comments, or conversation before or after the JSON. Only provide a well-formatted JSON object surrounded by proper brackets.
 
             ```json
             {{

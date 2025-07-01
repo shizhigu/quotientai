@@ -14,6 +14,7 @@ class BrandIntelligenceAgent(LlmAgent):
 
                 **Input:**
                 - Brand name: `{{{STATE_BRAND_NAME}}}`
+                - DO NOT extract any information from the images provided. Those are for the creator's profile, not the brand's, and have NO relevance to your research on the brand's analysis.
 
                 ## Research Objectives
 
@@ -64,6 +65,7 @@ class BrandIntelligenceAgent(LlmAgent):
                 - Alignment with different creator niches and audiences
 
                 ## Output Format
+                - You MUST ONLY output the JSON object strictly in the format below. Do not include any explanatory text, comments, or conversation before or after the JSON. Only provide a well-formatted JSON object surrounded by proper brackets.
 
                 **If Brand NOT Found:**
                 ```json
