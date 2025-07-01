@@ -3,6 +3,8 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
+import asyncio
+import aiohttp
 
 from google.adk.cli.fast_api import get_fast_api_app
 from google.adk.runners import Runner
@@ -16,37 +18,108 @@ from creatoros.agent import chat_agent, deal_intelligence_agent
 
 # =================== 辅助函数 ===================
 
-
-
-async def get_final_response(runner: Runner, user_id: str, session_id: str, message: str) -> str:
+async def process_profileImages(profileImages: List[str]) -> List[types.Part]:
     """
-    获取agent的最终响应的辅助函数
+    Process profile image URLs and convert them to Google GenAI content parts.
+    
+    Uses best practices from Google GenAI documentation:
+    - types.Part.from_bytes() for image creation
+    - Proper MIME type detection from response headers
+    - Efficient async processing
     
     Args:
-        runner: ADK Runner实例
-        user_id: 用户ID
-        session_id: 会话ID（必须已存在）
-        message: 用户消息
+        profileImages: List of image URLs
         
     Returns:
-        str: 最终响应文本
+        List[types.Part]: List of image content parts
     """
-    # 构造正确的Content格式
-    content = types.Content(
-        role="user",
-        parts=[types.Part(text=message)]
-    )
+    if not profileImages:
+        return []
+        
+    print(f"🖼️ Processing {len(profileImages)} profile images...")
+    image_parts = []
     
+    async with aiohttp.ClientSession() as session:
+        for i, image_url in enumerate(profileImages):
+            try:
+                print(f"📥 Downloading image {i+1}/{len(profileImages)}: {image_url}")
+                
+                async with session.get(image_url) as response:
+                    if response.status == 200:
+                        image_data = await response.read()
+                        
+                        # Get MIME type from response headers first, fallback to URL extension
+                        mime_type = response.headers.get('content-type', '').split(';')[0]
+                        
+                        # If no content-type header, determine from URL extension
+                        if not mime_type or not mime_type.startswith('image/'):
+                            url_lower = image_url.lower()
+                            if url_lower.endswith(('.png',)):
+                                mime_type = "image/png"
+                            elif url_lower.endswith(('.jpg', '.jpeg')):
+                                mime_type = "image/jpeg"
+                            elif url_lower.endswith(('.gif',)):
+                                mime_type = "image/gif"
+                            elif url_lower.endswith(('.webp',)):
+                                mime_type = "image/webp"
+                            else:
+                                mime_type = "image/jpeg"  # Default fallback
+                        
+                        # Create image part using Google GenAI best practices
+                        image_part = types.Part.from_bytes(
+                            data=image_data, 
+                            mime_type=mime_type
+                        )
+                        
+                        image_parts.append(image_part)
+                        print(f"✅ Successfully processed image {i+1} ({mime_type})")
+                        
+                    else:
+                        print(f"⚠️ Failed to download image {i+1}: HTTP {response.status}")
+                        
+            except Exception as e:
+                print(f"❌ Error processing image {i+1} ({image_url}): {str(e)}")
+                continue
+    
+    print(f"🖼️ Successfully processed {len(image_parts)} out of {len(profileImages)} images")
+    return image_parts
+
+
+async def get_final_response(runner: Runner, user_id: str, session_id: str, message: str, image_parts: List[types.Part] = None) -> str:
+    """
+    Get final response from agent using ADK best practices.
+    
+    Args:
+        runner: ADK Runner instance
+        user_id: User ID
+        session_id: Session ID (must already exist)
+        message: User message text
+        image_parts: Optional list of image Parts
+        
+    Returns:
+        str: Final response text from agent
+    """
     final_response_text = "Agent did not produce a final response."
     all_events = []
     
-    # 收集所有事件，不要提前break
+    # Prepare new_message for ADK runner
+    if image_parts:
+        print(f"🖼️ Including {len(image_parts)} images with the message")
+        # Create multimodal content when images are present
+        parts = [types.Part.from_text(text=message)]
+        parts.extend(image_parts)
+        new_message = types.Content(role="user", parts=parts)
+    else:
+        # Use simple string message when no images
+        new_message = message
+    
+    # Execute agent workflow
     try:
         print(f"🚀 Starting agent execution for user={user_id}, session={session_id}")
         async for event in runner.run_async(
             user_id=user_id,
             session_id=session_id,
-            new_message=content
+            new_message=new_message
         ):
             all_events.append(event)
             # print(f"📅 Event: Author={event.author}, Final={event.is_final_response()}, Content={event.content.parts[0].text[:100] if event.content and event.content.parts else 'No content'}...")
@@ -120,6 +193,7 @@ class DealAnalysisRequest(BaseModel):
     projectTitle: str
     deliverables: Optional[List[str]] = None
     youtubeProfile: str
+    profileImages: Optional[List[str]] = None
 
 class DealAnalysisResponse(BaseModel):
     success: bool
@@ -193,6 +267,14 @@ async def run_deal_intelligence_agent(request: DealAnalysisRequest):
         start_time = time.time()
         print(f"🔍 Request: {request}")
         
+        # 首先处理profileImages（在创建session之前）
+        image_parts = []
+        if request.profileImages:
+            print(f"🖼️ Found {len(request.profileImages)} profile images to process")
+            image_parts = await process_profileImages(request.profileImages)
+        else:
+            print("📷 No profile images provided")
+        
         # Deal analysis先检查session是否存在，不存在则创建
         try:
             # 先尝试获取现有session
@@ -211,7 +293,9 @@ async def run_deal_intelligence_agent(request: DealAnalysisRequest):
                     "project_title": request.projectTitle,
                     "deal_deliverables": ", ".join(request.deliverables) if request.deliverables else None,
                     "youtube_creator_profile": request.youtubeProfile,
-                    "inquiry_email": "None"
+                    "inquiry_email": "None",
+                    "has_profileImages": len(image_parts) > 0,  # 标记是否有图片
+                    "profileImages_count": len(image_parts)      # 图片数量
                 }
                 
                 new_session = await deal_runner.session_service.create_session(
@@ -227,11 +311,20 @@ async def run_deal_intelligence_agent(request: DealAnalysisRequest):
             print(f"⚠️ Failed to handle deal analysis session {request.sessionId}: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to handle session: {str(e)}")
         
-        # 使用简单的触发消息，让agent从session state中获取信息
-        trigger_message = "Please run the deal analysis agent's full workflow."
+        # 构造触发消息，包含图片信息
+        if image_parts:
+            trigger_message = f"Please run the deal analysis agent's full workflow. I'm providing {len(image_parts)} profile images for creator's social media analytics and information from one or multiple platforms. Please analyze these images along with other profile data to provide comprehensive insights. These images are for the creator's profile, not the brand's."
+        else:
+            trigger_message = "Please run the deal analysis agent's full workflow."
         
-        # 获取最终响应（agent会从session state中读取参数）
-        final_response_text = await get_final_response(deal_runner, request.userId, request.sessionId, trigger_message)
+        # 获取最终响应（agent会从session state中读取参数，同时接收图片内容）
+        final_response_text = await get_final_response(
+            deal_runner, 
+            request.userId, 
+            request.sessionId, 
+            trigger_message,
+            image_parts  # 传递图片parts
+        )
         
         execution_time = time.time() - start_time
         
