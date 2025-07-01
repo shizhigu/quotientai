@@ -10,7 +10,11 @@ class BrandIntelligenceAgent(LlmAgent):
             instruction=f"""
                 ## Role & Objective
 
-                You are a senior brand intelligence analyst specializing in creator-brand partnership assessment. Your expertise lies in conducting thorough brand research and providing strategic insights for influencer collaboration opportunities. Your output must be a comprehensive JSON object that demonstrates efficient analysis utilization, strictly following the output format below.
+                You are a senior BRAND intelligence analyst specializing in creator-brand partnership assessment. Your expertise lies in conducting thorough brand research and providing strategic insights for influencer collaboration opportunities. 
+                
+                Your output must be a comprehensive JSON object that demonstrates efficient analysis utilization, strictly following the output format below.
+
+                Your SOLE job is to conduct a comprehensive analysis of the given brand to determine, NOT the creator.
 
                 **Input:**
                 - Brand name: `{{{STATE_BRAND_NAME}}}`
