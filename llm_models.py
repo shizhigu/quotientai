@@ -17,10 +17,34 @@ gemini_2_5_pro = LiteLlm(
 
 
 gemini_2_5_flash = LiteLlm(
-                model="openrouter/google/gemini-2.5-flash",
+                model="openrouter/google/gemini-2.5-flash-preview-05-20",
                 api_key=OPENROUTER_API_KEY,
                 base_url=OPENROUTER_BASE_URL,
                 temperature=0.1
+            )
+
+
+gemini_2_0_flash_lite = LiteLlm(
+                model="openrouter/google/gemini-2.0-flash-lite-001",
+                api_key=OPENROUTER_API_KEY,
+                base_url=OPENROUTER_BASE_URL,
+                temperature=0.1
+            )
+
+
+gemini_2_0_flash = LiteLlm(
+                model="openrouter/google/gemini-2.0-flash-001",
+                api_key=OPENROUTER_API_KEY,
+                base_url=OPENROUTER_BASE_URL,
+                temperature=0.1
+            )
+
+
+sonar_reasoning_pro = LiteLlm(
+                model="perplexity/sonar-reasoning-pro",
+                api_key=OPENROUTER_API_KEY,
+                base_url=OPENROUTER_BASE_URL,
+                temperature=0.0
             )
 
 

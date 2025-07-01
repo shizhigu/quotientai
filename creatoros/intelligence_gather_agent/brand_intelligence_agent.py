@@ -1,12 +1,12 @@
 from google.adk.agents.llm_agent import LlmAgent
 from creatoros.state_keys import STATE_BRAND_INTELLIGENCE_SUMMARY, STATE_BRAND_NAME, STATE_INQUIRY_EMAIL
 from creatoros.mcp_tools import perplexity_mcp_tools, adk_tavily_tool
-from llm_models import gemini_2_5_flash
+from llm_models import gemini_2_0_flash
 
 class BrandIntelligenceAgent(LlmAgent):
     def __init__(self):
         super().__init__(
-            model=gemini_2_5_flash,
+            model=gemini_2_0_flash,
             name="BrandIntelligenceAgent",
             instruction=f"""
                 ## Role & Objective

@@ -1,7 +1,7 @@
 from google.adk.agents.llm_agent import LlmAgent
 from pydantic import BaseModel, Field
 from typing import List, Optional
-
+from llm_models import gemini_2_0_flash_lite
 class Contact(BaseModel):
     full_name: str = Field(description="the full name of the contact person")
     position: str = Field(description="the job position/title")
@@ -23,7 +23,7 @@ class FormatOutputAgentResponse(BaseModel):
 format_output_agent = LlmAgent(
     name="FormatOutputAgent",
     description="A specialized agent that extracts and formats deal intelligence analysis into structured JSON output",
-    model="gemini-2.5-flash-lite",
+    model=gemini_2_0_flash_lite,
     instruction="""You are a data extraction specialist. Your ONLY task is to locate and extract specific information from the previous conversation context and format it into a precise JSON structure.
 
 CRITICAL REQUIREMENTS:
