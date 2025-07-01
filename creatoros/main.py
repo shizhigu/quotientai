@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import asyncio
 import aiohttp
+import tempfile
 
 from google.adk.cli.fast_api import get_fast_api_app
 from google.adk.runners import Runner
@@ -16,70 +17,115 @@ from typing import List, Dict, Any
 # 导入我们的agents
 from creatoros.agent import chat_agent, deal_intelligence_agent
 
+# =================== 配置常量 ===================
+MAX_IMAGE_SIZE_MB = 10  # Maximum image size in MB
+MAX_IMAGES_COUNT = 6    # Maximum number of images per request
+TEMP_DIR = tempfile.gettempdir()  # Use system temp directory
+
 # =================== 辅助函数 ===================
 
 async def process_profileImages(profileImages: List[str]) -> List[types.Part]:
     """
     Process profile image URLs and convert them to Google GenAI content parts.
     
-    Uses best practices from Google GenAI documentation:
-    - types.Part.from_bytes() for image creation
-    - Proper MIME type detection from response headers
-    - Efficient async processing
+    Features:
+    - Memory-efficient processing with size limits
+    - Temporary file cleanup
+    - Error handling and logging
+    - Best practices from Google GenAI documentation
     
     Args:
         profileImages: List of image URLs
         
     Returns:
         List[types.Part]: List of image content parts
+        
+    Raises:
+        HTTPException: If too many images or images too large
     """
     if not profileImages:
         return []
+    
+    # Validate input limits
+    if len(profileImages) > MAX_IMAGES_COUNT:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Too many images. Maximum {MAX_IMAGES_COUNT} images allowed."
+        )
         
     print(f"🖼️ Processing {len(profileImages)} profile images...")
     image_parts = []
+    temp_files = []  # Track temporary files for cleanup
     
-    async with aiohttp.ClientSession() as session:
-        for i, image_url in enumerate(profileImages):
+    try:
+        async with aiohttp.ClientSession() as session:
+            for i, image_url in enumerate(profileImages):
+                try:
+                    print(f"📥 Downloading image {i+1}/{len(profileImages)}: {image_url}")
+                    
+                    async with session.get(image_url) as response:
+                        if response.status == 200:
+                            # Check content length before downloading
+                            content_length = response.headers.get('content-length')
+                            if content_length:
+                                size_mb = int(content_length) / (1024 * 1024)
+                                if size_mb > MAX_IMAGE_SIZE_MB:
+                                    print(f"⚠️ Skipping image {i+1}: too large ({size_mb:.1f}MB > {MAX_IMAGE_SIZE_MB}MB)")
+                                    continue
+                            
+                            image_data = await response.read()
+                            
+                            # Double-check actual size
+                            actual_size_mb = len(image_data) / (1024 * 1024)
+                            if actual_size_mb > MAX_IMAGE_SIZE_MB:
+                                print(f"⚠️ Skipping image {i+1}: too large ({actual_size_mb:.1f}MB > {MAX_IMAGE_SIZE_MB}MB)")
+                                continue
+                            
+                            # Get MIME type from response headers first
+                            mime_type = response.headers.get('content-type', '').split(';')[0]
+                            
+                            # Fallback to URL extension if no content-type header
+                            if not mime_type or not mime_type.startswith('image/'):
+                                url_lower = image_url.lower()
+                                if url_lower.endswith(('.png',)):
+                                    mime_type = "image/png"
+                                elif url_lower.endswith(('.jpg', '.jpeg')):
+                                    mime_type = "image/jpeg"
+                                elif url_lower.endswith(('.gif',)):
+                                    mime_type = "image/gif"
+                                elif url_lower.endswith(('.webp',)):
+                                    mime_type = "image/webp"
+                                else:
+                                    mime_type = "image/jpeg"  # Default fallback
+                            
+                            # Create image part using Google GenAI best practices
+                            image_part = types.Part.from_bytes(
+                                data=image_data, 
+                                mime_type=mime_type
+                            )
+                            
+                            image_parts.append(image_part)
+                            print(f"✅ Successfully processed image {i+1} ({mime_type}, {actual_size_mb:.1f}MB)")
+                            
+                            # Clear image_data from memory immediately
+                            del image_data
+                            
+                        else:
+                            print(f"⚠️ Failed to download image {i+1}: HTTP {response.status}")
+                            
+                except Exception as e:
+                    print(f"❌ Error processing image {i+1} ({image_url}): {str(e)}")
+                    continue
+    
+    finally:
+        # Clean up any temporary files
+        for temp_file in temp_files:
             try:
-                print(f"📥 Downloading image {i+1}/{len(profileImages)}: {image_url}")
-                
-                async with session.get(image_url) as response:
-                    if response.status == 200:
-                        image_data = await response.read()
-                        
-                        # Get MIME type from response headers first, fallback to URL extension
-                        mime_type = response.headers.get('content-type', '').split(';')[0]
-                        
-                        # If no content-type header, determine from URL extension
-                        if not mime_type or not mime_type.startswith('image/'):
-                            url_lower = image_url.lower()
-                            if url_lower.endswith(('.png',)):
-                                mime_type = "image/png"
-                            elif url_lower.endswith(('.jpg', '.jpeg')):
-                                mime_type = "image/jpeg"
-                            elif url_lower.endswith(('.gif',)):
-                                mime_type = "image/gif"
-                            elif url_lower.endswith(('.webp',)):
-                                mime_type = "image/webp"
-                            else:
-                                mime_type = "image/jpeg"  # Default fallback
-                        
-                        # Create image part using Google GenAI best practices
-                        image_part = types.Part.from_bytes(
-                            data=image_data, 
-                            mime_type=mime_type
-                        )
-                        
-                        image_parts.append(image_part)
-                        print(f"✅ Successfully processed image {i+1} ({mime_type})")
-                        
-                    else:
-                        print(f"⚠️ Failed to download image {i+1}: HTTP {response.status}")
-                        
+                if os.path.exists(temp_file):
+                    os.unlink(temp_file)
+                    print(f"🗑️ Cleaned up temporary file: {temp_file}")
             except Exception as e:
-                print(f"❌ Error processing image {i+1} ({image_url}): {str(e)}")
-                continue
+                print(f"⚠️ Error cleaning up temp file {temp_file}: {e}")
     
     print(f"🖼️ Successfully processed {len(image_parts)} out of {len(profileImages)} images")
     return image_parts
@@ -102,19 +148,21 @@ async def get_final_response(runner: Runner, user_id: str, session_id: str, mess
     final_response_text = "Agent did not produce a final response."
     all_events = []
     
-    # Prepare new_message for ADK runner
-    if image_parts:
-        print(f"🖼️ Including {len(image_parts)} images with the message")
-        # Create multimodal content when images are present
-        parts = [types.Part.from_text(text=message)]
-        parts.extend(image_parts)
-        new_message = types.Content(role="user", parts=parts)
-    else:
-        # Use simple string message when no images
-        new_message = message
-    
-    # Execute agent workflow
     try:
+        # Prepare new_message for ADK runner - always use Content format
+        if image_parts:
+            print(f"🖼️ Including {len(image_parts)} images with the message")
+            # Create multimodal content when images are present
+            parts = [types.Part.from_text(text=message)]
+            parts.extend(image_parts)
+        else:
+            # Create text-only content
+            parts = [types.Part.from_text(text=message)]
+        
+        # Always construct Content object for consistent ADK framework compatibility
+        new_message = types.Content(role="user", parts=parts)
+        
+        # Execute agent workflow
         print(f"🚀 Starting agent execution for user={user_id}, session={session_id}")
         async for event in runner.run_async(
             user_id=user_id,
@@ -135,10 +183,17 @@ async def get_final_response(runner: Runner, user_id: str, session_id: str, mess
         
         print(f"🏁 Workflow completed. Total events: {len(all_events)}")
         return final_response_text
+        
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise
+    finally:
+        # Clean up image_parts from memory after processing
+        if image_parts:
+            print(f"🧹 Cleaning up {len(image_parts)} image parts from memory")
+            image_parts.clear()
+            del image_parts
 
 # 获取项目根目录
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -262,13 +317,13 @@ async def run_chat_agent(request: RunnerRequest):
 @app.post("/custom/deal-analysis", response_model=DealAnalysisResponse)
 async def run_deal_intelligence_agent(request: DealAnalysisRequest):
     """专门运行deal intelligence agent的endpoint - 总是创建新session"""
+    image_parts = []  # Initialize outside try block for cleanup
     try:
         import time
         start_time = time.time()
         print(f"🔍 Request: {request}")
         
         # 首先处理profileImages（在创建session之前）
-        image_parts = []
         if request.profileImages:
             print(f"🖼️ Found {len(request.profileImages)} profile images to process")
             image_parts = await process_profileImages(request.profileImages)
@@ -391,6 +446,11 @@ async def run_deal_intelligence_agent(request: DealAnalysisRequest):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Deal analysis failed: {type(e).__name__}: {str(e)}")
+    finally:
+        # Clean up image_parts from memory after processing
+        if image_parts:
+            print(f"🧹 Cleaning up {len(image_parts)} image parts from deal analysis endpoint")
+            image_parts.clear()
 
 
 
