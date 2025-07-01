@@ -69,7 +69,7 @@ class BrandIntelligenceAgent(LlmAgent):
                 - Alignment with different creator niches and audiences
 
                 ## Output Format
-                - You MUST ONLY output the JSON object strictly in the format below. Do not include any explanatory text, comments, or conversation before or after the JSON. Only provide a well-formatted JSON object surrounded by proper brackets.
+                - You MUST ONLY output the JSON object strictly in the format below. Do not include any explanatory text, comments, or conversation before or after the JSON. Only provide a well-formatted JSON object surrounded by proper brackets, with ```json and ``` at the beginning and end to indicate the JSON object.
 
                 **If Brand NOT Found:**
                 ```json
