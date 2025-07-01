@@ -64,7 +64,7 @@ async def perplexity_search(query: str) -> Dict[str, Any]:
     # Hardcoded configuration
     model = "sonar-reasoning-pro" # "sonar-pro"
     # max_tokens = 800
-    # temperature = 0.3
+    temperature = 0.0
     # search_domain_filter = ["wikipedia.org", "arxiv.org", "github.com"]  # Trusted sources
     
     url = "https://api.perplexity.ai/chat/completions"
@@ -86,7 +86,7 @@ async def perplexity_search(query: str) -> Dict[str, Any]:
             }
         ],
         # "max_tokens": max_tokens,
-        # "temperature": temperature,
+        "temperature": temperature,
         # "search_domain_filter": search_domain_filter
     }
     

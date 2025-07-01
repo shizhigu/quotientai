@@ -23,7 +23,7 @@ class FormatOutputAgentResponse(BaseModel):
 format_output_agent = LlmAgent(
     name="FormatOutputAgent",
     description="A specialized agent that extracts and formats deal intelligence analysis into structured JSON output",
-    model="gemini-2.0-flash-lite",
+    model="gemini-2.5-flash-lite",
     instruction="""You are a data extraction specialist. Your ONLY task is to locate and extract specific information from the previous conversation context and format it into a precise JSON structure.
 
 CRITICAL REQUIREMENTS:

@@ -7,7 +7,7 @@ from llm_models import *
 class PricingStrategyAgent(LlmAgent):
     def __init__(self):
         super().__init__(
-            model=gemini_2_5_pro,
+            model=gemini_2_5_flash,
             name="PricingStrategyAgent",
             instruction=f"""
             You are an **Advanced Pricing Strategy & Market Intelligence Agent**. Your mission is to conduct efficient, targeted market research and execute precise pricing calculations for creator-brand collaborations. You leverage Perplexity's advanced reasoning capabilities to get comprehensive insights with minimal searches.
