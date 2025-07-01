@@ -33,5 +33,6 @@ tavily_tool_instance = TavilySearchResults(
 )
 
 # Wrap it with LangchainTool for ADK
-adk_tavily_tool = LongRunningFunctionTool(LangchainTool(tool=tavily_tool_instance))
+adk_tavily_tool = LangchainTool(tool=tavily_tool_instance)
+
 
