@@ -187,7 +187,7 @@ async def get_final_response(runner: Runner, user_id: str, session_id: str, mess
     except Exception as e:
         import traceback
         traceback.print_exc()
-        raise
+        # raise
     finally:
         # Clean up image_parts from memory after processing
         if image_parts:

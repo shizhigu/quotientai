@@ -72,14 +72,30 @@ class ProposalEmailAgent(LlmAgent):
 
                 ## Design & Format Guidelines
 
-                **HTML Email Standards:**
-                Create a professionally formatted HTML email that reflects both the brand's aesthetic sensibilities and the strategic positioning. Use clean, readable styling that enhances your message rather than distracting from it.
-
-                **Visual Design Choices:**
-                - **Brand-Aligned Aesthetics** - For luxury brands, use elegant, minimal design; for tech brands, use modern, clean lines; for creative brands, allow more personality
-                - **Strategic Color Psychology** - Choose colors that complement the brand's visual identity or evoke desired emotions
-                - **Hierarchy and Flow** - Guide the reader's eye to key information in order of strategic importance
-                - **Mobile-Responsive** - Ensure readability across devices (max-width: 600px, clear typography)
+                **MANDATORY HTML EMAIL REQUIREMENTS:**
+                
+                **Complete HTML Structure:**
+                You MUST output a complete, ready-to-send HTML email with:
+                - Full `<!DOCTYPE html>` declaration
+                - Complete `<html>`, `<head>`, and `<body>` tags
+                - Embedded CSS styling in `<style>` tags
+                - Professional typography and spacing
+                - Mobile-responsive design (max-width: 600px)
+                
+                **NO PLACEHOLDERS ALLOWED:**
+                - **NEVER use brackets like [Brand Name], [Creator Name], [Amount]**
+                - **Extract and use ACTUAL data** from the provided inputs:
+                  * Real brand name from STATE_BRAND_NAME
+                  * Real creator details from STATE_YOUTUBE_CREATOR_PROFILE
+                  * Real pricing from negotiation intelligence
+                  * Real contact information and channel details
+                - **If specific data is missing, use creative professional language** instead of placeholders
+                
+                **Professional Visual Standards:**
+                - **Brand-Aligned Aesthetics** - Luxury brands: elegant minimal design; Tech brands: modern clean lines; Creative brands: personality-driven design
+                - **Strategic Color Psychology** - Choose colors that complement brand identity and evoke desired emotions
+                - **Visual Hierarchy** - Guide reader's eye to key information in strategic order
+                - **Typography Excellence** - Clean, readable fonts with proper spacing and sizing
 
                 **Content Architecture Options:**
                 - **Story-Driven** - For brands that value narrative and emotional connection
@@ -94,6 +110,35 @@ class ProposalEmailAgent(LlmAgent):
                 - **Value-based pricing** - Emphasizing ROI and deliverables
                 - **Collaborative pricing** - Inviting discussion and customization
                 - **Performance-based pricing** - Tied to specific outcomes
+
+                ## Ready-to-Send HTML Email Template Structure
+
+                **Your output must be a complete HTML email following this professional structure:**
+
+                ```html
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Partnership Opportunity</title>
+                    <style>
+                        /* Include professional CSS styling here */
+                    </style>
+                </head>
+                <body>
+                    <!-- Your complete email content goes here with REAL DATA -->
+                </body>
+                </html>
+                ```
+
+                **Data Extraction Requirements:**
+                - **Brand Name**: Extract exact name from STATE_BRAND_NAME
+                - **Creator Details**: Extract real channel name, subscriber count, niche from STATE_YOUTUBE_CREATOR_PROFILE  
+                - **Pricing Amount**: Extract recommended_opening price from negotiation intelligence
+                - **Key Metrics**: Extract real audience demographics, engagement rates, view counts
+                - **Creator Contact**: Extract real email and social media handles if available
+                - **Strategic Positioning**: Extract specific value propositions and talking points from negotiation intelligence
 
                 ## Data Integration Strategy
 
@@ -154,10 +199,37 @@ class ProposalEmailAgent(LlmAgent):
                 **The Ultimate Test:**
                 Would a busy brand executive read this email and think, "I need to learn more about this opportunity"? Your email should stand out in their inbox as something worth their time and attention.
 
-                **Final Deliverable:**
-                Create a complete, professional HTML email that demonstrates mastery of both strategic thinking and compelling communication. This is your opportunity to showcase how effective partnerships begin - with thoughtful, value-driven outreach that respects their time while clearly articulating mutual opportunity.
+                **Final Deliverable Requirements:**
 
-                **Now create your strategic email masterpiece** - start by calling the get_today_date() tool, then craft an email that exemplifies the intersection of strategic intelligence and creative excellence.
+                **MUST OUTPUT: Complete Ready-to-Send HTML Email**
+                - **Full HTML structure** with DOCTYPE, head, body, and embedded CSS
+                - **Zero placeholders** - all content must use real extracted data
+                - **Professional visual design** that reflects the brand's aesthetic
+                - **Strategic messaging** aligned with negotiation intelligence
+                - **Copy-paste ready** - user should be able to send immediately
+
+                **Quality Assurance Checklist:**
+                ✅ Complete HTML email with proper structure and styling
+                ✅ Real brand name (not [Brand Name])
+                ✅ Real creator details (not [Creator Name])
+                ✅ Real pricing amount (not [Amount])
+                ✅ Real metrics and achievements
+                ✅ Real contact information in signature
+                ✅ Strategic positioning from negotiation intelligence
+                ✅ Professional visual design
+                ✅ Mobile-responsive layout
+                ✅ Engaging subject line
+                ✅ Clear call-to-action
+
+                **EXECUTION STEPS:**
+                1. **Call get_today_date() tool** for current date
+                2. **Extract all real data** from provided inputs
+                3. **Create complete HTML email** following the template structure
+                4. **Fill with strategic content** based on negotiation intelligence
+                5. **Ensure visual excellence** with proper CSS styling
+                6. **Verify no placeholders remain** in final output
+
+                **Your output should be production-ready HTML that demonstrates the perfect marriage of strategic intelligence and creative excellence.**
             """,
             tools=[get_today_date],
             output_key=STATE_GENERATED_PROPOSAL_EMAIL,

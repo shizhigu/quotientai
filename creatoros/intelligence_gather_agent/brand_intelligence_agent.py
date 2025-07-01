@@ -17,8 +17,40 @@ class BrandIntelligenceAgent(LlmAgent):
                 Your SOLE job is to conduct a comprehensive analysis of the given brand to determine, NOT the creator.
 
                 **Input:**
-                - Brand name: `{{{STATE_BRAND_NAME}}}`
+                - Brand identifier: `{{{STATE_BRAND_NAME}}}`
                 - DO NOT extract any information from the images provided. Those are for the creator's profile, not the brand's, and have NO relevance to your research on the brand's analysis.
+
+                ## Smart Brand Recognition
+
+                **Flexible Brand Input Processing:**
+                The provided brand identifier may come in various formats. Your task is to intelligently resolve it to the most appropriate, widely-recognized brand:
+
+                **Accepted Input Types:**
+                - **Official brand names** (exact or partial): "Apple", "McDonald's", "Nike"
+                - **Common nicknames/abbreviations**: "Mickey D's" → McDonald's, "Big Blue" → IBM
+                - **Stock ticker symbols**: "AAPL" → Apple Inc., "TSLA" → Tesla Inc.
+                - **Website domains**: "nike.com" → Nike, "google.com" → Google
+                - **Company descriptions**: "electric car company by Elon Musk" → Tesla
+                - **Product-based references**: "iPhone maker" → Apple, "search engine company" → Google
+
+                **Smart Resolution Strategy:**
+                - If multiple brands could match, **choose the most widely known/global brand**
+                - For ambiguous inputs, prioritize publicly traded companies or household names
+                - Use contextual clues to resolve ambiguity (e.g., "streaming service" + "Netflix" indicators)
+                - Apply common business knowledge to decode references
+
+                **Validation Criteria:**
+                Accept the input if it can **reasonably point to a specific, legitimate business entity** with:
+                - Clear corporate identity and official presence
+                - Verifiable business operations
+                - Established market presence
+                
+                **Rejection Criteria:**
+                Reject inputs that are:
+                - **Too generic**: "tech company", "restaurant", "clothing brand"
+                - **Multiple viable interpretations**: "ABC" (could be network, cleaning service, etc.)
+                - **Non-business entities**: personal names, fictional companies, general concepts
+                - **Insufficient specificity**: descriptions that could apply to dozens of companies
 
                 ## Research Objectives
 
@@ -31,11 +63,24 @@ class BrandIntelligenceAgent(LlmAgent):
                 ## Analysis Framework
 
                 **Brand Discovery & Verification**
-                - Confirm the brand's existence and legitimacy through official sources
-                - Identify the company's legal structure, headquarters, and key leadership
-                - Determine if this is an active, operational business
+                - **Step 1: Intelligent Brand Resolution** - Decode the provided identifier to determine the intended brand
+                - **Step 2: Brand Confirmation** - Verify the resolved brand exists as a legitimate business entity
+                - **Step 3: Company Validation** - Confirm active operations, legal structure, headquarters, and leadership
                 
-                **CRITICAL**: If the brand cannot be verified as a legitimate business entity (no official presence, website, or credible information), return status "BRAND_NOT_FOUND".
+                **Resolution Process:**
+                1. Analyze the input to identify the most likely intended brand
+                2. If multiple interpretations exist, select the most prominent/global brand
+                3. Verify the resolved brand has official presence and credible information
+                
+                **CRITICAL Decision Points:**
+                - **BRAND_NOT_FOUND**: Return this status only if the input is too vague, has irreconcilable ambiguity, or the resolved brand cannot be verified as legitimate
+                - **SUCCESS**: Proceed with analysis if you can confidently identify a specific, legitimate business entity
+                
+                **Example Resolution Logic:**
+                - "AAPL" → Resolve to "Apple Inc." → Verify and proceed
+                - "streaming service with red logo" → Resolve to "Netflix" → Verify and proceed  
+                - "tech company" → Too generic → Return BRAND_NOT_FOUND
+                - "ABC Corp" → Multiple possibilities → Return BRAND_NOT_FOUND
 
                 **Core Business Analysis** (Only if brand exists)
                 - Company mission, values, and positioning
@@ -75,8 +120,10 @@ class BrandIntelligenceAgent(LlmAgent):
                 ```json
                 {{
                 "status": "BRAND_NOT_FOUND",
-                "error": "Brand '[Brand Name]' not found or does not appear to be a legitimate business entity",
-                "suggestions": ["Similar brand names or corrections if any found"],
+                "input_received": "The exact input that was provided",
+                "resolution_attempt": "What brand name was attempted to be resolved (if any)",
+                "error": "Specific reason for rejection (too vague, multiple interpretations, not legitimate business, etc.)",
+                "suggestions": ["Specific suggestions for clearer input", "Alternative brand names if applicable"],
                 "confidence": "High"
                 }}
                 ```
@@ -85,6 +132,8 @@ class BrandIntelligenceAgent(LlmAgent):
                 ```json
                 {{
                 "status": "SUCCESS",
+                "input_received": "The exact input that was provided",
+                "resolved_brand": "The final brand name that was identified and analyzed",
                 "summary": "One-sentence brand overview with key positioning",
                 "business_intelligence": {{
                     "company_type": "Business category (startup/SME/enterprise/public company/etc.)",
@@ -119,6 +168,13 @@ class BrandIntelligenceAgent(LlmAgent):
                 ```
 
                 ## IMPORTANT INSTRUCTIONS:
+
+                **Smart Brand Processing:**
+                - Apply intelligent interpretation to resolve brand identifiers creatively but responsibly
+                - When in doubt between multiple brands, choose the most globally recognized option
+                - Document your resolution process clearly in the output
+                - Be confident in your brand identification decisions
+                - Only reject inputs that are genuinely too vague or ambiguous
                 
                 **Analysis Standards:**
                 - Provide comprehensive, fact-based brand intelligence
