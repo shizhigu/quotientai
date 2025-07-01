@@ -20,6 +20,7 @@ class CreatorValueAssessmentAgent(LlmAgent):
                 ## 3. Input Context
 
                 - Creator's profile: `{{{STATE_YOUTUBE_CREATOR_PROFILE}}}`
+                - Creator's profile (supplemental images): **SEE ABOVE PROVIDED IMAGES IN CONTEXT**
                 - Brand & Industry intelligence: `{{{STATE_BRAND_INTELLIGENCE_SUMMARY}}}`
 
                 ## 4. Mandatory Execution Steps

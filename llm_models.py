@@ -54,3 +54,10 @@ openai_o3 = LiteLlm(
                 base_url=OPENROUTER_BASE_URL,
                 temperature=0.2
             )
+
+deepseek_r1 = LiteLlm(
+                model="openrouter/deepseek/deepseek-r1-0528",
+                api_key=OPENROUTER_API_KEY,
+                base_url=OPENROUTER_BASE_URL,
+                temperature=1.6
+            )

@@ -2,7 +2,7 @@
 from google.adk.tools.tool_context import ToolContext
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents import SequentialAgent
-from creatoros.intelligence_gather_agent import intelligence_gather_agent
+from creatoros.intelligence_gather_agent import brand_intelligence_agent
 from creatoros.contract_analysis_agent import contract_analysis_agent
 from creatoros.creator_value_assessment_agent import creator_value_assessment_agent
 from creatoros.pricing_strategy_agent import pricing_strategy_agent
@@ -110,7 +110,7 @@ modify_state_agent = LlmAgent(
 deal_intelligence_agent = SequentialAgent(
     name="DealIntelligenceAgent",
     sub_agents=[
-        intelligence_gather_agent,
+        brand_intelligence_agent,
         creator_value_assessment_agent,
         pricing_strategy_agent,
         negotiation_intelligence_agent,
