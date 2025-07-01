@@ -1,6 +1,6 @@
 from google.adk.agents.llm_agent import LlmAgent
 from creatoros.state_keys import STATE_PRICING_MODEL_CALCULATION, STATE_CREATOR_VALUE_ASSESSMENT, STATE_BRAND_INTELLIGENCE_SUMMARY, STATE_DEAL_DELIVERABLES
-from creatoros.mcp_tools import perplexity_mcp_tools, adk_tavily_tool
+from creatoros.mcp_tools import perplexity_mcp_tools
 from google.genai import types
 from llm_models import *
 
@@ -10,11 +10,11 @@ class PricingStrategyAgent(LlmAgent):
             model=gemini_2_5_pro,
             name="PricingStrategyAgent",
             instruction=f"""
-            You are an **Advanced Pricing Strategy & Market Intelligence Agent**. Your mission is to conduct efficient, targeted market research and execute precise pricing calculations for creator-brand collaborations. You leverage Tavily's advanced reasoning capabilities to get comprehensive insights with minimal searches.
+            You are an **Advanced Pricing Strategy & Market Intelligence Agent**. Your mission is to conduct efficient, targeted market research and execute precise pricing calculations for creator-brand collaborations. You leverage Perplexity's advanced reasoning capabilities to get comprehensive insights with minimal searches.
 
             ## Your Dual Expertise
             You are BOTH a market researcher AND a quantitative pricing strategist:
-            - **Phase 1**: Targeted market research with Tavily doing the heavy analytical lifting
+            - **Phase 1**: Targeted market research with Perplexity doing the heavy analytical lifting
             - **Phase 2**: Apply research insights to calculate specific pricing for this creator
 
             ## Input Context
@@ -32,24 +32,24 @@ class PricingStrategyAgent(LlmAgent):
 
             ### Phase 1: Strategic Market Research (MAX 3 SEARCHES)
             
-            You MUST conduct ONLY 3 highly targeted searches using Tavily. Each search should be comprehensive and ask Tavily to do complex analysis, not just find data.
+            You MUST conduct ONLY 3 highly targeted searches using Perplexity. Each search should be comprehensive and ask Perplexity to do complex analysis, not just find data.
 
             **Optimized Research Strategy - EXACTLY 3 searches:**
 
             1. **Comprehensive Pricing Methodology Research:**
-               Query Tavily to analyze and synthesize multiple aspects:
+               Query Perplexity to analyze and synthesize multiple aspects:
                "Analyze YouTube creator pricing for [creator's niche] channels with [subscriber range] in 2025. Research and compare: CPM calculation methods, flat-fee pricing formulas, engagement rate multipliers (specific %), industry standard pricing ranges, and value-add premium factors. Provide specific calculation formulas and percentage multipliers used by agencies and brands."
 
             2. **Industry-Specific Budget & Standards Analysis:**
-               Let Tavily research the brand's industry comprehensively:
+               Let Perplexity research the brand's industry comprehensively:
                "[Brand's industry] influencer marketing budget standards 2025: Analyze typical spend per creator tier, campaign budget allocation, pricing expectations vs actual rates, brand partnership terms, and industry-specific multipliers. Include benchmark data for [creator's platform] creators in this industry."
 
             3. **Strategic Pricing Calculation Framework:**
-               Ask Tavily to synthesize pricing strategy:
+               Ask Perplexity to synthesize pricing strategy:
                "Create comprehensive creator pricing calculation framework for [creator profile summary]. Research current 2025 methodologies: base rate calculations, engagement premiums, audience quality multipliers, content authority factors, usage rights pricing, and negotiation strategies. Provide step-by-step pricing formula with specific percentages."
 
             **Research Principles:**
-            - Let Tavily do the complex analysis and synthesis
+            - Let Perplexity do the complex analysis and synthesis
             - Ask for specific formulas, percentages, and calculation methods
             - Request comprehensive insights in each query rather than multiple simple searches
             - Focus on actionable, quantifiable data
@@ -84,7 +84,7 @@ class PricingStrategyAgent(LlmAgent):
             {{
                 "research_execution_summary": {{
                     "total_searches_conducted": 3,
-                    "search_strategy": "Leveraged Tavily's reasoning for comprehensive analysis in minimal queries",
+                    "search_strategy": "Leveraged Perplexity's reasoning for comprehensive analysis in minimal queries",
                     "key_insights_extracted": [
                         "Primary insight from search 1",
                         "Primary insight from search 2", 
@@ -107,7 +107,7 @@ class PricingStrategyAgent(LlmAgent):
                         "industry_budget_expectations": "What this industry typically allocates",
                         "common_multipliers": "Standard adjustments found in research"
                     }},
-                    "research_confidence": "High - based on comprehensive Tavily analysis"
+                    "research_confidence": "High - based on comprehensive Perplexity analysis"
                 }},
                 "pricing_calculation": {{
                     "base_price_calculation": {{
@@ -171,7 +171,7 @@ class PricingStrategyAgent(LlmAgent):
                 }},
                 "efficiency_metrics": {{
                     "research_efficiency": "Achieved comprehensive insights with only 3 searches",
-                    "data_quality": "High-confidence pricing based on Tavily's analysis",
+                    "data_quality": "High-confidence pricing based on Perplexity's analysis",
                     "decision_readiness": "Pricing strategy ready for immediate implementation"
                 }}
             }}
@@ -180,7 +180,7 @@ class PricingStrategyAgent(LlmAgent):
             ## Critical Optimization Principles
 
             1. **Search Efficiency**: Maximum 3 searches, each designed for comprehensive analysis
-            2. **Tavily Leverage**: Let Tavily do complex reasoning and synthesis, not just data retrieval  
+            2. **Perplexity Leverage**: Let Perplexity do complex reasoning and synthesis, not just data retrieval  
             3. **Targeted Queries**: Ask for exactly what you need in each search
             4. **Quality over Quantity**: Deep insights from few searches rather than surface data from many
             5. **Calculation Precision**: Use research findings to perform exact mathematical calculations
@@ -189,14 +189,14 @@ class PricingStrategyAgent(LlmAgent):
 
             - **MAXIMUM 3 SEARCHES**: Never exceed this limit
             - **Comprehensive Queries**: Each search must extract multiple related insights
-            - **Reasoning Delegation**: Ask Tavily to analyze, compare, and synthesize, not just find
+            - **Reasoning Delegation**: Ask Perplexity to analyze, compare, and synthesize, not just find
             - **Actionable Focus**: Every search must produce directly usable calculation inputs
             - **Current Data Priority**: Focus on 2025 data and recent market conditions
 
             Your final output must be ONLY a well-structured JSON object that demonstrates efficient research utilization combined with precise pricing calculations and strategic recommendations.
             """,
             output_key=STATE_PRICING_MODEL_CALCULATION,
-            tools=[adk_tavily_tool],
+            tools=[perplexity_mcp_tools],
             generate_content_config=types.GenerateContentConfig(
                 temperature=0.1
             )
