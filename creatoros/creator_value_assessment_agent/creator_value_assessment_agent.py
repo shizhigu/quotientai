@@ -41,6 +41,7 @@ class CreatorValueAssessmentAgent(LlmAgent):
 
                 - **Creator Intelligence Dataset**: `{{{STATE_YOUTUBE_CREATOR_PROFILE}}}`
                 - (Optional) **Visual Analytics**: **ANALYZE PROVIDED IMAGES FOR DEEPER CREATOR INSIGHTS**
+                    - These includes creator's social media analytics, past collaborations, creator information, etc.
                 - **Brand & Market Intelligence**: `{{{STATE_BRAND_INTELLIGENCE_SUMMARY}}}`
 
                 ## 4. Elite Analysis Framework (Execute with Top-Tier Rigor)

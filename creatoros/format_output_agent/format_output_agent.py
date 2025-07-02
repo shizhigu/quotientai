@@ -89,6 +89,7 @@ EXTRACTION & PRESENTATION GUIDELINES:
   * Ensure clear, actionable insights
   * Maintain factual accuracy from source analysis
   * Focus on what makes this creator valuable to this specific brand
+  * If the creator does not have enough data to make a strong case, suggest the creator to provide necessary data, like more social media analytics, more past collaborations, more creator information, etc.
   
 - negotiationTips: Extract negotiation recommendations from `negotiation_intelligence['general_strategy_guidelines']`, but **enhance for user readability**:
   * Convert technical analysis into practical, actionable advice

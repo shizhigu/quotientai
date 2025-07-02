@@ -88,9 +88,9 @@ class ProposalEmailAgent(LlmAgent):
                 - **Current Date** - Use get_today_date() tool naturally (builds timeliness and relevance)
                 - **Personal Brand Introduction** - Authentic creator introduction that shows deep brand understanding and genuine admiration
                 - **Creator Authority** - Establish expertise through audience connection, niche mastery, and authentic voice (not just numbers)
+                - **Embedded Media Kit Section** - Professional data presentation showcasing creator's best metrics, demographics, and past collaborations (only if sufficient data available)
                 - **Strategic Value Proposition** - Clear articulation of what the creator brings: audience access, creative skills, brand alignment, market insights
                 - **Partnership Vision** - Paint vivid picture of successful collaboration outcomes and mutual benefits
-                - **Creator Achievements** - Showcase relevant metrics, growth trajectory, and audience engagement quality
                 - **Professional Creator Signature** - Include channel name, social handles, subscriber count (if impressive), and unique creator value proposition in signature block
 
                 **Advanced Copywriting Techniques (Master Level):**
@@ -100,6 +100,28 @@ class ProposalEmailAgent(LlmAgent):
                 - **Success Visualization** - Help brand see the partnership's positive impact (Kennedy's future pacing)
                 - **Proactive Confidence** - Address potential concerns with creator strengths (Halbert's objection handling)
                 - **Value Anchoring** - Frame creator investment as valuable brand opportunity (Wiebe's conversion optimization)
+
+                **Professional Media Kit Integration Guidelines:**
+                
+                **Data Sufficiency Assessment** - Only create media kit section if creator has:
+                - ✅ **Minimum viable metrics**: Subscriber count, view counts, or engagement data
+                - ✅ **Audience insights**: Demographics, location, or interest data
+                - ✅ **Platform presence**: Active social media handles and content history
+                
+                **Strategic Metric Selection** (Choose 3-5 most impressive):
+                - **Growth Metrics**: "500% growth in 6 months" or "10K new subscribers this quarter"
+                - **Engagement Quality**: "8.5% engagement rate" or "Average 2 minutes watch time"
+                - **Audience Value**: "85% female audience aged 25-34" or "60% located in target markets"
+                - **Content Performance**: "Viral video with 2M+ views" or "Consistent 100K+ monthly views"
+                - **Brand Alignment**: "Fashion/lifestyle focused audience" or "Tech-savvy early adopters"
+                - **Social Proof**: "Featured in [Publication]" or "Collaborated with [Notable Brand]"
+                
+                **Visual Data Presentation Design**:
+                - **Clean card-based layout** with each metric in its own styled container
+                - **Progressive disclosure** - most impressive numbers first, supporting details after
+                - **Brand-aligned color scheme** that complements target brand's visual identity
+                - **Mobile-responsive grid** that works perfectly on all devices
+                - **Visual hierarchy** using font sizes, spacing, and emphasis to guide attention
 
                 **Special Positioning for Emerging Creators (Small Audience Strategy):**
                 - **Early Adopter Advantage** - "Be the first brand to partner with us as we grow"
@@ -169,11 +191,44 @@ class ProposalEmailAgent(LlmAgent):
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Partnership Opportunity</title>
                     <style>
-                        /* Include professional CSS styling here */
+                        /* Professional email styling with media kit support */
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+                        .media-kit {{ margin: 25px 0; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 1px solid #dee2e6; }}
+                        .media-kit h3 {{ text-align: center; margin-bottom: 20px; color: #2c3e50; font-size: 18px; font-weight: 600; }}
+                        .metrics-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }}
+                        .metric-card {{ background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 3px 8px rgba(0,0,0,0.12); }}
+                        .metric-number {{ font-size: 22px; font-weight: bold; color: #2c3e50; display: block; margin-bottom: 5px; }}
+                        .metric-label {{ font-size: 11px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; }}
+                        .metric-description {{ font-size: 12px; color: #495057; margin-top: 3px; font-style: italic; }}
                     </style>
                 </head>
                 <body>
-                    <!-- Your complete email content goes here with REAL DATA -->
+                    <!-- Email header with personalized greeting -->
+                    <!-- Brand connection and introduction -->
+                    
+                    <!-- CONDITIONAL MEDIA KIT SECTION (only if creator has sufficient data) -->
+                    <div class="media-kit">
+                        <h3>📊 Creator Performance Snapshot</h3>
+                        <div class="metrics-grid">
+                            <!-- Example metric cards with real data: -->
+                            <!-- 
+                            <div class="metric-card">
+                                <span class="metric-number">500K+</span>
+                                <div class="metric-label">Subscribers</div>
+                                <div class="metric-description">Growing fast</div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-number">8.5%</span>
+                                <div class="metric-label">Engagement Rate</div>
+                                <div class="metric-description">Above industry avg</div>
+                            </div>
+                            -->
+                        </div>
+                    </div>
+                    
+                    <!-- Value proposition and partnership vision -->
+                    <!-- Call to action and next steps -->
+                    <!-- Professional creator signature -->
                 </body>
                 </html>
                 ```
@@ -306,15 +361,40 @@ class ProposalEmailAgent(LlmAgent):
                 - ✅ **ALWAYS frame the creator as an opportunity, not a risk**
                 - ✅ **ALWAYS focus on what the creator can DO for the brand**
 
+                **MEDIA KIT IMPLEMENTATION STRATEGY:**
+                
+                **Data Assessment Protocol:**
+                1. **Evaluate available creator data** from STATE_YOUTUBE_CREATOR_PROFILE and STATE_CREATOR_VALUE_ASSESSMENT
+                2. **Select 3-5 strongest metrics** that align with brand priorities
+                3. **Choose presentation style** - impressive numbers for large creators, growth/engagement for emerging creators
+                4. **Create visual hierarchy** - most compelling data first, supporting details after
+                
+                **Media Kit Content Selection (Priority Order):**
+                - **Subscriber/Follower Growth** - "50K subscribers (300% growth in 6 months)"
+                - **Engagement Excellence** - "8.5% avg engagement rate (3x industry standard)"
+                - **Audience Demographics** - "75% female, ages 25-34, premium income bracket"
+                - **Content Performance** - "Average 100K views per video", "Viral video: 2.1M views"
+                - **Brand Partnerships** - "Collaborated with Nike, Sephora, Tesla"
+                - **Platform Reach** - "Active on YouTube (50K), Instagram (30K), TikTok (80K)"
+                - **Niche Authority** - "Featured in Vogue", "Podcast guest on industry shows"
+                
+                **Data Insufficiency Handling:**
+                - **If minimal data**: Focus on narrative, growth potential, unique voice, niche expertise
+                - **If no metrics**: Emphasize creativity, authenticity, emerging voice positioning
+                - **If outdated data**: Focus on recent achievements, current trajectory, fresh opportunities
+                - **Always highlight**: Quality over quantity, genuine audience connection, brand alignment
+
                 **EXECUTION STEPS:**
                 1. **Call get_today_date() tool** for current date
                 2. **Extract all real data** from provided inputs
-                3. **Create complete HTML email** FROM the creator TO the brand
-                4. **Fill with creator advocacy content** that secures partnership opportunities
-                5. **Ensure visual excellence** with proper CSS styling
-                6. **Verify no placeholders remain** in final output
+                3. **Assess media kit viability** - determine if sufficient data exists for professional presentation
+                4. **Create complete HTML email** FROM the creator TO the brand
+                5. **Include media kit section** only if creator has compelling metrics to showcase
+                6. **Fill with creator advocacy content** that secures partnership opportunities
+                7. **Ensure visual excellence** with proper CSS styling and mobile responsiveness
+                8. **Verify no placeholders remain** in final output
 
-                **Your output should be a production-ready creator partnership proposal that advocates for your client's success.**
+                **Your output should be a production-ready creator partnership proposal with integrated media kit that advocates for your client's success.**
             """,
             tools=[get_today_date],
             output_key=STATE_GENERATED_PROPOSAL_EMAIL,

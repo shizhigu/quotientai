@@ -63,6 +63,13 @@ class NegotiationIntelligenceAgent(LlmAgent):
                 - **Social Proof Amplification**: Leverage creator's market position for authority and consensus influence
                 - **Commitment Consistency**: Structure deals that align with brand's public commitments and values
 
+                **Creator Credibility & Proof Architecture**:
+                - **Performance Portfolio Strategy**: Showcase previous brand collaborations demonstrating ROI delivery and professional execution
+                - **KPI-Driven Value Presentation**: Align creator metrics with brand business objectives (sales, leads, awareness, customer acquisition)
+                - **Case Study Weaponization**: Transform past partnerships into compelling proof points that justify premium pricing
+                - **Industry Authority Positioning**: Leverage niche expertise and audience trust as competitive differentiation
+                - **Deliverable Clarity Protocol**: Crystal-clear articulation of what creator provides to eliminate brand uncertainty
+
                 ### Phase 4.3: Advanced Anchoring & Framing Strategy (Behavioral Economics)
                 **Cognitive Advantage Creation**:
                 - **Strategic Anchoring**: Optimal pricing presentation and initial offer positioning
@@ -79,6 +86,13 @@ class NegotiationIntelligenceAgent(LlmAgent):
                 - **Exclusivity Premium Calculation**: Quantify and monetize competitive advantages
                 - **Performance Incentive Design**: Structure deals that reward creator excellence with exponential returns
 
+                **Creator Negotiation Arsenal (5 Key Leverage Points)**:
+                - **Content Deliverables**: Number of posts, videos, stories, duration, production quality
+                - **Financial Structure**: Base fee, performance bonuses, revenue sharing, payment terms
+                - **Timeline Flexibility**: Delivery dates, campaign duration, content creation schedule
+                - **Exclusivity Terms**: Competitor restrictions, category exclusivity, duration limits
+                - **Usage Rights**: Platform scope, geographic reach, duration, repurposing rights
+
                 ### Phase 4.5: Tactical Execution & Counter-Strategy (Chris Voss + Crisis Negotiation)
                 **Battlefield Tactics Development**:
                 - **Opening Gambit Strategy**: Designed-to-win first moves that establish creator advantage
@@ -86,6 +100,13 @@ class NegotiationIntelligenceAgent(LlmAgent):
                 - **Pressure Point Identification**: Brand vulnerabilities and leverage moments during negotiation
                 - **Deadline Management**: Time-based pressure application and urgency creation
                 - **Concession Choreography**: Strategic give-and-take patterns that maximize final outcomes
+
+                **Low-Ball Offer Psychological Warfare Defense**:
+                - **Emotional Regulation Protocol**: Maintain strategic clarity when facing disappointing counter-offers to avoid reactive decision-making
+                - **Anchoring Reset Strategy**: Techniques to neutralize low anchors and re-establish favorable pricing discussions
+                - **Value Reframe Tactics**: Immediate responses that redirect focus from price to total partnership value
+                - **Strategic Pause Utilization**: Using silence and consideration time as negotiation leverage rather than rushing to respond
+                - **Walk-Away Confidence Building**: Psychological preparation to maintain creator power when deals don't meet minimum thresholds
 
                 ### Phase 4.6: Legal & Contractual Warfare (Corporate Defense Strategy)
                 **Rights Protection & Value Capture**:
@@ -159,6 +180,29 @@ class NegotiationIntelligenceAgent(LlmAgent):
                     "creator_follow_up": "Next move after brand responds"
                     }}
                 ],
+                "creator_credibility_portfolio": {{
+                    "performance_proof_strategy": "How to present previous brand collaborations as ROI evidence",
+                    "kpi_alignment_framework": "Specific metrics that resonate with this brand's business objectives",
+                    "case_study_positioning": "Best previous collaboration to highlight for this brand type",
+                    "deliverable_clarity_script": "Exact language to articulate what creator provides",
+                    "authority_differentiation": "Creator's unique niche expertise that competitors cannot replicate"
+                }},
+                "negotiation_leverage_points": [
+                    {{
+                    "leverage_category": "Content Deliverables/Financial/Timeline/Exclusivity/Usage Rights",
+                    "current_creator_position": "Creator's starting position on this element",
+                    "negotiation_flexibility": "Room for movement and strategic concessions",
+                    "premium_positioning": "How to monetize favorable terms in this category",
+                    "brand_importance_level": "How much this matters to the specific brand"
+                    }}
+                ],
+                "low_offer_defense_protocol": {{
+                    "emotional_regulation_script": "Exact words to maintain composure when receiving low offers",
+                    "anchoring_reset_technique": "Specific tactic to neutralize low anchors and reframe discussion",
+                    "value_redirect_language": "Precise script to shift focus from price to partnership value",
+                    "strategic_pause_guidance": "When and how to use silence as negotiation leverage",
+                    "walk_away_threshold_clarity": "Specific conditions that trigger creator exit strategy"
+                }},
                 "corporate_defense_matrix": [
                     {{
                     "brand_manipulation_tactic": "Specific corporate negotiation trick brands use",
