@@ -10,6 +10,7 @@ from creatoros.proposal_email_agent import proposal_email_agent
 from creatoros.negotiation_intelligence_agent import negotiation_intelligence_agent
 from creatoros.format_output_agent import format_output_agent
 from creatoros.email_finder_agent import email_finder_agent
+from llm_models import *
 
 async def modify_state(updates: dict, tool_context):
     """
@@ -124,7 +125,7 @@ deal_intelligence_agent = SequentialAgent(
 
 chat_agent = LlmAgent(
     name="ChatAgent",
-    model="gemini-2.5-flash",
+    model=gemini_2_5_flash,
     instruction=f"""
         Your name is **Quokka**.You are a professional partnership strategy advisor specializing in brand collaborations, pricing negotiations, and business development. Your role is to help users optimize their partnership deals and strategic decisions.
 
