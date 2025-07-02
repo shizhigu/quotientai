@@ -435,12 +435,38 @@ async def run_deal_intelligence_agent(request: DealAnalysisRequest):
                 "suggestedEmails": []
             }
         
-        return DealAnalysisResponse(
+        # 创建响应对象
+        response_data = DealAnalysisResponse(
             success=True,
             dealId=request.sessionId,
             analysis=analysis_data,
             executionTime=execution_time
         )
+        
+        # 发送结果到webhook
+        webhook_url = "https://xgyslewfwwlyknuhlols.supabase.co/functions/v1/update-deal-status"
+        webhook_headers = {
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhneXNsZXdmd3dseWtudWhsb2xzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyNjY3OTYsImV4cCI6MjA2NTg0Mjc5Nn0.hgBdE8_2oiR1OM5rNHIFOhN56OhfCZre7g8WcwYaQUs',
+            'Content-Type': 'application/json'
+        }
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    webhook_url, 
+                    json=response_data.model_dump(),
+                    headers=webhook_headers
+                ) as response:
+                    if response.status == 200:
+                        print(f"✅ Successfully sent data to webhook: {webhook_url}")
+                    else:
+                        response_text = await response.text()
+                        print(f"⚠️ Webhook request failed with status {response.status}: {response_text}")
+        except Exception as e:
+            print(f"❌ Error sending data to webhook: {str(e)}")
+            # webhook失败不影响主流程，继续返回结果
+        
+        return response_data
         
     except Exception as e:
         import traceback
