@@ -367,11 +367,16 @@ async def run_deal_intelligence_agent(request: DealAnalysisRequest):
             raise HTTPException(status_code=500, detail=f"Failed to handle session: {str(e)}")
         
         # 构造触发消息，包含图片信息
-        if image_parts:
-            trigger_message = f"Please follow your instructions(system prompt) to start analyzing. I'm providing {len(image_parts)} profile images for creator's social media analytics and supplemental information from one or multiple platforms. Please analyze these images along with other profile data to provide comprehensive insights. These images are for the creator's profile, not the brand's."
-        else:
-            trigger_message = "Please follow your instructions(system prompt) to start analyzing."
-        
+        # if image_parts:
+        #     trigger_message = f"Please follow your instructions(system prompt) to start analyzing. I'm providing {len(image_parts)} profile images for creator's social media analytics and supplemental information from one or multiple platforms. Please analyze these images along with other profile data to provide comprehensive insights. These images are for the creator's profile, not the brand's."
+        # else:
+        #     trigger_message = "Please follow your instructions(system prompt) to start analyzing."
+        trigger_message = f"""
+        Please follow your instructions(system prompt) to start analyzing.
+        - Brand name: {initial_state["brand_name"]},
+        - Youtube creator profile: {initial_state["youtube_creator_profile"]}
+        - Optional: {len(image_parts) if image_parts else 0} images(screenshots) as supplemental information of the CREATOR's profile, not BRAND's.
+        """
         # 获取最终响应（agent会从session state中读取参数，同时接收图片内容）
         final_response_text = await get_final_response(
             deal_runner, 
