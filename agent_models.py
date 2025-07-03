@@ -8,7 +8,7 @@ proposal_email_agent_model = LiteLlm(
                 model="openrouter/google/gemini-2.5-flash-preview-05-20",
                 api_key=OPENROUTER_API_KEY,
                 base_url=OPENROUTER_BASE_URL,
-                temperature=1.6
+                temperature=0.6
             )
 email_finder_agent_model = gemini_2_0_flash_lite
 format_output_agent_model = gemini_2_0_flash_lite
