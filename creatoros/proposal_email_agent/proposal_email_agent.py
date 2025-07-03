@@ -383,6 +383,7 @@ class ProposalEmailAgent(LlmAgent):
                 - **If no metrics**: Emphasize creativity, authenticity, emerging voice positioning
                 - **If outdated data**: Focus on recent achievements, current trajectory, fresh opportunities
                 - **Always highlight**: Quality over quantity, genuine audience connection, brand alignment
+                - **Regardless of the data sufficiency, you should ALWAYS output a complete HTML email with the necessary structure to advocate for the creator.**
 
                 **EXECUTION STEPS:**
                 1. **Call get_today_date() tool** for current date

@@ -17,7 +17,7 @@ gemini_2_5_pro = LiteLlm(
 
 
 gemini_2_5_flash = LiteLlm(
-                model="openrouter/google/gemini-2.5-flash-preview-05-20",
+                model="openrouter/google/gemini-2.5-flash",
                 api_key=OPENROUTER_API_KEY,
                 base_url=OPENROUTER_BASE_URL,
                 temperature=0.2
