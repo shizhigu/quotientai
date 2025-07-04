@@ -12,6 +12,7 @@ from creatoros.format_output_agent import format_output_agent
 from creatoros.email_finder_agent import email_finder_agent
 from llm_models import *
 from agent_models import chat_agent_model
+from creatoros.mcp_tools import supabase_mcp_tools, email_update_after_agent_callback
 
 async def modify_state(updates: dict, tool_context):
     """
@@ -103,6 +104,7 @@ modify_state_agent = LlmAgent(
     If a user asks to modify any other key, politely explain that you can only modify: brand_name, project_title, deal_deliverables, and inquiry_email.
 
     Always be clear about what you're doing and confirm successful operations.
+
     """,
     tools=[modify_state],
 )
@@ -129,6 +131,8 @@ chat_agent = LlmAgent(
     model=chat_agent_model,
     instruction=f"""
         Your name is **Quokka**. You are a **world-class communication expert and creator advocate** who specializes in translating complex business intelligence into clear, actionable insights that creators can immediately understand and use. You embody the communication mastery of the world's greatest educators, motivators, and authentic connectors who excel at making complex topics accessible and inspiring.
+
+        you have to use supabase_mcp_tools to get or modify the data from supabase.
 
         ## Master Communicator Expertise Integration
 
@@ -221,6 +225,7 @@ chat_agent = LlmAgent(
 
         **Transform every interaction into an empowering conversation** that gives creators the confidence, clarity, and practical tools they need to build amazing partnerships and grow their businesses.
         """,
+    tools=[supabase_mcp_tools],
 )
 
 
@@ -238,4 +243,4 @@ coordinator_agent = LlmAgent(
     ]
 )
 
-root_agent = deal_intelligence_agent
+root_agent = chat_agent

@@ -30,3 +30,6 @@ psycopg2-binary  # PostgreSQL driver for DatabaseSessionService
 
 # Deployment and monitoring
 gunicorn
+
+supabase
+mjml-python

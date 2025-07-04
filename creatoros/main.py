@@ -16,6 +16,7 @@ from typing import List, Dict, Any
 
 # 导入我们的agents
 from creatoros.agent import chat_agent, deal_intelligence_agent
+from creatoros.proposal_email_agent.proposal_email_agent import ProposalEmailAgent
 
 # =================== 配置常量 ===================
 MAX_IMAGE_SIZE_MB = 10  # Maximum image size in MB
@@ -234,6 +235,14 @@ deal_runner = Runner(
     session_service=sqlite_session_service
 )
 
+# 创建proposal email agent实例和runner (用于处理邮件修改任务)
+proposal_email_agent = ProposalEmailAgent()
+proposal_email_runner = Runner(
+    agent=proposal_email_agent,
+    app_name=APP_NAME,
+    session_service=sqlite_session_service
+)
+
 # 定义请求/响应模型
 class RunnerRequest(BaseModel):
     userId: str
@@ -261,6 +270,11 @@ class RunnerResponse(BaseModel):
     sessionId: str
     response: str
     executionTime: Optional[float] = None
+
+class ModifyEmailTemplateRequest(BaseModel):
+    sessionId: str
+    userId: str
+    modifiedEmailHtml: str
 
 # =================== 健康检查端点 ===================
 
@@ -483,7 +497,87 @@ async def run_deal_intelligence_agent(request: DealAnalysisRequest):
             print(f"🧹 Cleaning up {len(image_parts)} image parts from deal analysis endpoint")
             image_parts.clear()
 
-
+@app.post("/custom/modify-email-template")
+async def modify_email_template(request: ModifyEmailTemplateRequest):
+    """通过proposal email agent runner处理邮件模板修改任务"""
+    try:
+        import time
+        start_time = time.time()
+        print(f"✏️ Modify Email Template Request: sessionId={request.sessionId}, userId={request.userId}")
+        
+        # 验证输入
+        if not request.modifiedEmailHtml or len(request.modifiedEmailHtml.strip()) == 0:
+            raise HTTPException(status_code=400, detail="Modified email HTML cannot be empty")
+        
+        # 检查proposal email runner的session是否存在，如果不存在则创建
+        try:
+            existing_session = await proposal_email_runner.session_service.get_session(
+                app_name=APP_NAME,
+                user_id=request.userId,
+                session_id=request.sessionId
+            )
+            
+            if existing_session:
+                print(f"✏️ Using existing proposal email session: {request.sessionId}")
+                # 更新session state中的邮件模板
+                from creatoros.state_keys import STATE_GENERATED_PROPOSAL_EMAIL
+                existing_session.state[STATE_GENERATED_PROPOSAL_EMAIL] = request.modifiedEmailHtml
+            else:
+                # Session不存在，创建新的
+                from creatoros.state_keys import STATE_GENERATED_PROPOSAL_EMAIL
+                initial_state = {
+                    STATE_GENERATED_PROPOSAL_EMAIL: request.modifiedEmailHtml,
+                    "brand_name": "Modified Email Template",
+                    "project_title": "Email Template Update",
+                    "inquiry_email": "Modified via API"
+                }
+                
+                new_session = await proposal_email_runner.session_service.create_session(
+                    app_name=APP_NAME,
+                    user_id=request.userId,
+                    session_id=request.sessionId,
+                    state=initial_state
+                )
+                print(f"✏️ Created new proposal email session: {request.sessionId}")
+                
+        except Exception as e:
+            print(f"⚠️ Error handling proposal email session {request.sessionId}: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to handle session: {str(e)}")
+        
+        # 通过runner执行agent，触发after_agent_callback自动同步
+        trigger_message = f"Please save the provided modified email template. The email has been updated and needs to be synchronized to the database."
+        
+        # 获取最终响应 - runner会自动执行after_agent_callback
+        final_response_text = await get_final_response(
+            proposal_email_runner, 
+            request.userId, 
+            request.sessionId, 
+            trigger_message
+        )
+        
+        execution_time = time.time() - start_time
+        
+        # 创建响应
+        response_data = {
+            "success": True,
+            "message": "Email template updated successfully via proposal email agent",
+            "sessionId": request.sessionId,
+            "userId": request.userId,
+            "emailLength": len(request.modifiedEmailHtml),
+            "executionTime": execution_time,
+            "agentResponse": final_response_text
+        }
+        
+        print(f"✏️ Successfully modified email template via agent runner in {execution_time:.2f}s")
+        return response_data
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions without modification
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Email template modification failed: {type(e).__name__}: {str(e)}")
 
 
 @app.get("/custom/session/state")

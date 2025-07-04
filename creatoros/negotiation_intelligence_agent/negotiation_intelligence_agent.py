@@ -137,9 +137,9 @@ class NegotiationIntelligenceAgent(LlmAgent):
                 **🚨 MANDATORY JSON FORMAT - NO EXCEPTIONS:**
                 Your response MUST be exclusively a JSON object wrapped in ```json ``` tags. Zero explanatory text, no conversations, no additional content outside the JSON wrapper.
 
-                ```json
-                {{
-                "status": "SUCCESS",
+```json
+{{
+  "status": "SUCCESS",
                 "negotiation_intelligence_summary": "One-sentence assessment of creator's negotiation position and strategic advantages using elite methodologies",
                 "strategic_position_analysis": {{
                     "creator_batna_strength": "Assessment of creator's alternatives and walk-away power using Harvard framework",
@@ -252,8 +252,8 @@ class NegotiationIntelligenceAgent(LlmAgent):
                     "success_probability": "Percentage likelihood of achieving target pricing using these strategies",
                     "methodology_validation": "Confirmation that strategies utilize proven negotiation frameworks from Harvard, FBI, and Wall Street methodologies"
                 }}
-                }}
-                ```
+}}
+```
 
                 ## 7. Elite Negotiation Principles
 
@@ -280,7 +280,7 @@ class NegotiationIntelligenceAgent(LlmAgent):
                 2. **NO explanations, conversations, or additional text**
                 3. **Follow exact JSON schema above**
                 4. **This is non-negotiable for system functionality**
-            """,
+""",
             output_key=STATE_NEGOTIATION_INTELLIGENCE,
             tools=[perplexity_mcp_tools]
         )
