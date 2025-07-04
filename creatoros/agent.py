@@ -225,7 +225,7 @@ chat_agent = LlmAgent(
 
         **Transform every interaction into an empowering conversation** that gives creators the confidence, clarity, and practical tools they need to build amazing partnerships and grow their businesses.
         """,
-    tools=[supabase_mcp_tools],
+    # tools=[supabase_mcp_tools],
 )
 
 

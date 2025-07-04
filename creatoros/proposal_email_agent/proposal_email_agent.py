@@ -2,109 +2,16 @@ from google.adk.agents import LlmAgent
 from creatoros.state_keys import STATE_NEGOTIATION_INTELLIGENCE, STATE_GENERATED_PROPOSAL_EMAIL, STATE_BRAND_NAME, STATE_CREATOR_VALUE_ASSESSMENT
 from datetime import datetime
 from agent_models import proposal_email_agent_model
-from creatoros.mcp_tools import email_update_after_agent_callback
-from mjml import mjml2html
-from google.adk.agents.callback_context import CallbackContext
-from google.genai.types import Content
-from typing import Optional
 
 async def get_today_date() -> str:
     """Get today's date in YYYY-MM-DD format for email headers."""
     return datetime.now().strftime("%m/%d/%Y")
-
-async def mjml_to_html(mjml_email: str) -> str:
-    """
-    Convert MJML email to HTML.
-
-    This function takes a string containing MJML (Mailjet Markup Language) formatted email content
-    and converts it into standard HTML format using the mjml2html function. MJML is a markup language
-    designed to reduce the pain of coding a responsive email. The resulting HTML can be used for 
-    sending emails that are compatible with various email clients.
-
-    Args:
-        mjml_email (str): A string containing the MJML formatted email content.
-
-    Returns:
-        str: A string containing the converted HTML email content.
-    """
-    return mjml2html(mjml_email)
-
-async def mjml_to_html_after_agent_callback(callback_context: CallbackContext) -> Optional[Content]:
-    """
-    After agent callback that converts MJML email content to HTML in ADK state.
-    
-    This callback automatically detects MJML-formatted email content in the agent's state,
-    converts it to HTML using the mjml2html function, and replaces the original MJML content
-    with the converted HTML. This ensures that emails are ready for sending in standard HTML format.
-    
-    Process:
-    - Checks if STATE_GENERATED_PROPOSAL_EMAIL exists in state  
-    - Validates that the content appears to be MJML format
-    - Converts MJML to HTML using mjml2html function
-    - Replaces the state value with converted HTML
-    - Logs the conversion process for debugging
-    
-    Args:
-        callback_context (CallbackContext): ADK callback context with access to state and session
-        
-    Returns:
-        Optional[Content]: Always returns None to preserve agent's original response
-        
-    Raises:
-        No exceptions - all errors are caught and logged to prevent agent interruption
-    """
-    try:
-        # Step 1: Check if there's MJML email content to convert
-        mjml_content = callback_context.state.get(STATE_GENERATED_PROPOSAL_EMAIL)
-        if not mjml_content:
-            print("DEBUG: No email content found in state, skipping MJML conversion")
-            return None
-        
-        # Validate content exists and is string
-        if not isinstance(mjml_content, str) or len(mjml_content.strip()) == 0:
-            print("WARNING: Invalid email content format, skipping MJML conversion")
-            return None
-        
-        # Step 2: Check if content appears to be MJML
-        if not mjml_content.strip().startswith('<mjml'):
-            print("INFO: Content doesn't appear to be MJML format, skipping conversion")
-            return None
-        
-        print(f"INFO: Found MJML content ({len(mjml_content)} chars), converting to HTML")
-        
-        # Step 3: Convert MJML to HTML
-        try:
-            html_content = mjml2html(mjml_content)
-            
-            # Validate conversion succeeded
-            if not html_content or not isinstance(html_content, str):
-                print("ERROR: MJML conversion returned invalid result")
-                return None
-            
-            print(f"SUCCESS: MJML converted to HTML ({len(html_content)} chars)")
-            
-        except Exception as conversion_error:
-            print(f"ERROR: MJML conversion failed: {str(conversion_error)}")
-            return None
-        
-        # Step 4: Update state with HTML content
-        callback_context.state[STATE_GENERATED_PROPOSAL_EMAIL] = html_content
-        print(f"SUCCESS: State updated with HTML email content")
-        
-        # Always return None to preserve the agent's original response
-        return None
-        
-    except Exception as general_error:
-        print(f"ERROR: MJML conversion callback failed: {str(general_error)}")
-        # Never interrupt the agent flow, even on errors
-        return None
 
 class ProposalEmailAgent(LlmAgent):
     def __init__(self):
         super().__init__(
             name="ProposalEmailAgent",
             model=proposal_email_agent_model,
-            after_agent_callback=mjml_to_html_after_agent_callback,
             instruction=f"""
                 ## Role Definition
 
@@ -233,25 +140,15 @@ class ProposalEmailAgent(LlmAgent):
 
                 ## Design & Format Guidelines
 
-                **MANDATORY MJML EMAIL REQUIREMENTS:**
+                **MANDATORY HTML EMAIL REQUIREMENTS:**
                 
-                **Complete MJML Structure:**
-                You MUST output a complete, ready-to-process MJML email with:
-                - Full `<mjml>` declaration
-                - Complete `<mj-head>` and `<mj-body>` tags
-                - Professional typography and spacing using MJML components
-                - Mobile-responsive design (automatically handled by MJML)
-                - Clean component-based structure
-                
-                **MJML Component Guidelines:**
-                - **mj-section**: Use for main content blocks and backgrounds
-                - **mj-column**: Structure content within sections
-                - **mj-text**: For all text content with rich formatting
-                - **mj-button**: For call-to-action buttons with hover effects
-                - **mj-group**: For side-by-side columns in metrics display
-                - **mj-divider**: For visual separators between sections
-                - **mj-style**: For custom CSS when needed
-                - **mj-attributes**: For global styling consistency
+                **Complete HTML Structure:**
+                You MUST output a complete, ready-to-send HTML email with:
+                - Full `<!DOCTYPE html>` declaration
+                - Complete `<html>`, `<head>`, and `<body>` tags
+                - Embedded CSS styling in `<style>` tags
+                - Professional typography and spacing
+                - Mobile-responsive design (max-width: 600px)
                 
                 **NO PLACEHOLDERS ALLOWED:**
                 - **NEVER use brackets like [Brand Name], [Creator Name], [Amount]**
@@ -262,12 +159,11 @@ class ProposalEmailAgent(LlmAgent):
                   * Real contact information and channel details
                 - **If specific data is missing, use creative professional language** instead of placeholders
                 
-                **Professional Visual Standards (MJML Components):**
-                - **Brand-Aligned Aesthetics** - Use mj-section and mj-column for layout; customize with brand colors
-                - **Strategic Color Psychology** - Apply brand colors through MJML attributes and mj-style
-                - **Visual Hierarchy** - Use mj-text, mj-button, mj-divider to guide reader's attention
-                - **Typography Excellence** - Leverage MJML's built-in font rendering and spacing
-                - **Component-Based Design** - Utilize mj-group for complex layouts, mj-hero for headers
+                **Professional Visual Standards:**
+                - **Brand-Aligned Aesthetics** - Luxury brands: elegant minimal design; Tech brands: modern clean lines; Creative brands: personality-driven design
+                - **Strategic Color Psychology** - Choose colors that complement brand identity and evoke desired emotions
+                - **Visual Hierarchy** - Guide reader's eye to key information in strategic order
+                - **Typography Excellence** - Clean, readable fonts with proper spacing and sizing
 
                 **Content Architecture Options:**
                 - **Story-Driven** - For brands that value narrative and emotional connection
@@ -283,95 +179,58 @@ class ProposalEmailAgent(LlmAgent):
                 - **Collaborative pricing** - Inviting discussion and customization
                 - **Performance-based pricing** - Tied to specific outcomes
 
-                ## Ready-to-Send MJML Email Template Structure
+                ## Ready-to-Send HTML Email Template Structure
 
-                **Your output must be a complete MJML email following this professional structure:**
+                **Your output must be a complete HTML email following this professional structure:**
 
-                ```mjml
-                <mjml>
-                  <mj-head>
-                    <mj-title>Partnership Opportunity</mj-title>
-                    <mj-attributes>
-                      <mj-text color="#333333" font-family="Arial, sans-serif" line-height="1.6" />
-                      <mj-section padding="0" />
-                    </mj-attributes>
-                    <mj-style>
-                      .media-kit {{ background-color: #f8f9fa; border-radius: 10px; border: 1px solid #dee2e6; }}
-                      .metric-card {{ background: white; border-radius: 8px; text-align: center; box-shadow: 0 3px 8px rgba(0,0,0,0.12); }}
-                      .metric-number {{ font-size: 22px; font-weight: bold; color: #2c3e50; }}
-                      .metric-label {{ font-size: 11px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; }}
-                      .metric-description {{ font-size: 12px; color: #495057; font-style: italic; }}
-                    </mj-style>
-                  </mj-head>
-                  <mj-body width="600px">
+                ```html
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Partnership Opportunity</title>
+                    <style>
+                        /* Professional email styling with media kit support */
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+                        .media-kit {{ margin: 25px 0; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 1px solid #dee2e6; }}
+                        .media-kit h3 {{ text-align: center; margin-bottom: 20px; color: #2c3e50; font-size: 18px; font-weight: 600; }}
+                        .metrics-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }}
+                        .metric-card {{ background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 3px 8px rgba(0,0,0,0.12); }}
+                        .metric-number {{ font-size: 22px; font-weight: bold; color: #2c3e50; display: block; margin-bottom: 5px; }}
+                        .metric-label {{ font-size: 11px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; }}
+                        .metric-description {{ font-size: 12px; color: #495057; margin-top: 3px; font-style: italic; }}
+                    </style>
+                </head>
+                <body>
                     <!-- Email header with personalized greeting -->
-                    <mj-section>
-                      <mj-column>
-                        <mj-text>
-                          <!-- Personalized greeting and brand connection -->
-                        </mj-text>
-                      </mj-column>
-                    </mj-section>
+                    <!-- Brand connection and introduction -->
                     
                     <!-- CONDITIONAL MEDIA KIT SECTION (only if creator has sufficient data) -->
-                    <mj-section css-class="media-kit" padding="20px">
-                      <mj-column>
-                        <mj-text align="center" font-size="18px" font-weight="600" color="#2c3e50">
-                          📊 Creator Performance Snapshot
-                        </mj-text>
-                      </mj-column>
-                    </mj-section>
-                    
-                    <mj-section css-class="media-kit" padding="0 20px 20px 20px">
-                      <mj-group>
-                        <!-- Example metric cards with real data: -->
-                        <!-- 
-                        <mj-column width="50%">
-                          <mj-text css-class="metric-card" padding="15px">
-                            <div class="metric-number">500K+</div>
-                            <div class="metric-label">Subscribers</div>
-                            <div class="metric-description">Growing fast</div>
-                          </mj-text>
-                        </mj-column>
-                        <mj-column width="50%">
-                          <mj-text css-class="metric-card" padding="15px">
-                            <div class="metric-number">8.5%</div>
-                            <div class="metric-label">Engagement Rate</div>
-                            <div class="metric-description">Above industry avg</div>
-                          </mj-text>
-                        </mj-column>
-                        -->
-                      </mj-group>
-                    </mj-section>
+                    <div class="media-kit">
+                        <h3>📊 Creator Performance Snapshot</h3>
+                        <div class="metrics-grid">
+                            <!-- Example metric cards with real data: -->
+                            <!-- 
+                            <div class="metric-card">
+                                <span class="metric-number">500K+</span>
+                                <div class="metric-label">Subscribers</div>
+                                <div class="metric-description">Growing fast</div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-number">8.5%</span>
+                                <div class="metric-label">Engagement Rate</div>
+                                <div class="metric-description">Above industry avg</div>
+                            </div>
+                            -->
+                        </div>
+                    </div>
                     
                     <!-- Value proposition and partnership vision -->
-                    <mj-section>
-                      <mj-column>
-                        <mj-text>
-                          <!-- Partnership proposal content -->
-                        </mj-text>
-                      </mj-column>
-                    </mj-section>
-                    
                     <!-- Call to action and next steps -->
-                    <mj-section>
-                      <mj-column>
-                        <mj-button background-color="#007bff" color="white">
-                          Let's Explore This Partnership
-                        </mj-button>
-                      </mj-column>
-                    </mj-section>
-                    
                     <!-- Professional creator signature -->
-                    <mj-section>
-                      <mj-column>
-                        <mj-text>
-                          <!-- Creator signature and contact info -->
-                        </mj-text>
-                      </mj-column>
-                    </mj-section>
-                  </mj-body>
-                </mjml>
+                </body>
+                </html>
                 ```
 
                 **Data Extraction Requirements:**
@@ -468,25 +327,25 @@ class ProposalEmailAgent(LlmAgent):
 
                 **Final Deliverable Requirements:**
 
-                **MUST OUTPUT: Complete Ready-to-Process MJML Email**
-                - **Full MJML structure** with mj-head, mj-body, and component styling
+                **MUST OUTPUT: Complete Ready-to-Send HTML Email**
+                - **Full HTML structure** with DOCTYPE, head, body, and embedded CSS
                 - **Zero placeholders** - all content must use real extracted data
                 - **Professional visual design** that reflects the brand's aesthetic
                 - **Strategic messaging** aligned with negotiation intelligence
-                - **Process-ready** - MJML can be compiled to HTML for sending
+                - **Copy-paste ready** - user should be able to send immediately
 
                 **Quality Assurance Checklist:**
-                ✅ Complete MJML email with proper structure and styling
+                ✅ Complete HTML email with proper structure and styling
                 ✅ Real brand name (not [Brand Name])
                 ✅ Real creator details (not [Creator Name])
                 ✅ Real pricing amount (not [Amount])
                 ✅ Real metrics and achievements
                 ✅ Real contact information in signature
                 ✅ Strategic positioning from negotiation intelligence
-                ✅ Professional visual design using MJML components
-                ✅ Mobile-responsive layout (automatic with MJML)
+                ✅ Professional visual design
+                ✅ Mobile-responsive layout
                 ✅ Engaging subject line
-                ✅ Clear call-to-action using mj-button
+                ✅ Clear call-to-action
 
                 **CRITICAL CREATOR ADVOCACY REQUIREMENTS:**
                 
@@ -524,19 +383,19 @@ class ProposalEmailAgent(LlmAgent):
                 - **If no metrics**: Emphasize creativity, authenticity, emerging voice positioning
                 - **If outdated data**: Focus on recent achievements, current trajectory, fresh opportunities
                 - **Always highlight**: Quality over quantity, genuine audience connection, brand alignment
-                - **Regardless of the data sufficiency, you should ALWAYS output a complete MJML email with the necessary structure to advocate for the creator.**
+                - **Regardless of the data sufficiency, you should ALWAYS output a complete HTML email with the necessary structure to advocate for the creator.**
 
                 **EXECUTION STEPS:**
                 1. **Call get_today_date() tool** for current date
                 2. **Extract all real data** from provided inputs
                 3. **Assess media kit viability** - determine if sufficient data exists for professional presentation
-                4. **Create complete MJML email** FROM the creator TO the brand
+                4. **Create complete HTML email** FROM the creator TO the brand
                 5. **Include media kit section** only if creator has compelling metrics to showcase
                 6. **Fill with creator advocacy content** that secures partnership opportunities
-                7. **Ensure visual excellence** with proper MJML components and styling
+                7. **Ensure visual excellence** with proper CSS styling and mobile responsiveness
                 8. **Verify no placeholders remain** in final output
 
-                **Your output should be a production-ready MJML creator partnership proposal with integrated media kit that advocates for your client's success.**
+                **Your output should be a production-ready creator partnership proposal with integrated media kit that advocates for your client's success.**
             """,
             tools=[get_today_date],
             output_key=STATE_GENERATED_PROPOSAL_EMAIL,
