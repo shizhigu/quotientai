@@ -6,6 +6,15 @@ from typing import Optional, Dict, Any
 import asyncio
 import aiohttp
 import tempfile
+import json
+import time
+import logging
+from pathlib import Path
+
+try:
+    import yt_dlp
+except ImportError:
+    yt_dlp = None
 
 from google.adk.cli.fast_api import get_fast_api_app
 from google.adk.runners import Runner
@@ -17,11 +26,19 @@ from typing import List, Dict, Any
 # 导入我们的agents
 from creatoros.agent import chat_agent, deal_intelligence_agent
 from creatoros.proposal_email_agent.proposal_email_agent import ProposalEmailAgent
+from creatoros.video_content_agent import video_segment_selection_agent
 
 # =================== 配置常量 ===================
 MAX_IMAGE_SIZE_MB = 10  # Maximum image size in MB
 MAX_IMAGES_COUNT = 6    # Maximum number of images per request
 TEMP_DIR = tempfile.gettempdir()  # Use system temp directory
+
+# Deepgram API configuration
+DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
+DEEPGRAM_API_URL = "https://api.deepgram.com/v1/listen"
+
+if not DEEPGRAM_API_KEY:
+    logging.warning("DEEPGRAM_API_KEY not found in environment variables")
 
 # =================== 辅助函数 ===================
 
@@ -239,6 +256,13 @@ deal_runner = Runner(
 proposal_email_agent = ProposalEmailAgent()
 proposal_email_runner = Runner(
     agent=proposal_email_agent,
+    app_name=APP_NAME,
+    session_service=sqlite_session_service
+)
+
+# 创建video segment selection agent runner (用于处理视频片段选择任务)
+video_segment_runner = Runner(
+    agent=video_segment_selection_agent,
     app_name=APP_NAME,
     session_service=sqlite_session_service
 )
@@ -620,6 +644,314 @@ async def get_session_state(userId: str, sessionId: str):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get or create session: {str(e)}")
+
+# =================== Video Processing Pipeline Functions ===================
+
+def is_valid_youtube_url(url: str) -> bool:
+    """Validate YouTube URL"""
+    youtube_domains = ['youtube.com', 'youtu.be', 'www.youtube.com', 'm.youtube.com']
+    return any(domain in url for domain in youtube_domains)
+
+async def download_audio_from_youtube(youtube_url: str) -> str:
+    """Download audio from YouTube and return file path"""
+    if not yt_dlp:
+        raise Exception("yt-dlp not available")
+    
+    if not is_valid_youtube_url(youtube_url):
+        raise Exception("Invalid YouTube URL")
+    
+    # Create temporary directory for audio
+    temp_dir = tempfile.mkdtemp()
+    
+    # Download audio only
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'outtmpl': os.path.join(temp_dir, 'audio.%(ext)s'),
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'wav',
+            'preferredquality': '192',
+        }],
+        'quiet': True,
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([youtube_url])
+        
+        # Find downloaded audio file
+        audio_files = list(Path(temp_dir).glob('audio.*'))
+        if not audio_files:
+            raise Exception('Audio file not found after download')
+        
+        return str(audio_files[0])
+
+async def transcribe_with_deepgram(audio_path: str) -> Dict[str, Any]:
+    """Transcribe audio using Deepgram API with word-level timestamps"""
+    if not DEEPGRAM_API_KEY:
+        raise Exception('Deepgram API key not configured')
+    
+    # Prepare Deepgram request
+    headers = {
+        'Authorization': f'Token {DEEPGRAM_API_KEY}',
+        'Content-Type': 'audio/wav'
+    }
+    
+    # Deepgram parameters for word-level timestamps
+    params = {
+        'model': 'nova-2',
+        'language': 'en',
+        'smart_format': 'true',
+        'punctuate': 'true',
+        'diarize': 'false',
+        'multichannel': 'false',
+        'alternatives': '1',
+        'numerals': 'true',
+        'profanity_filter': 'false',
+        'redact': 'false',
+        'ner': 'false',
+        'utterances': 'true',
+        'utt_split': '0.8',
+        'paragraphs': 'true',
+        'summarize': 'false',
+        'detect_language': 'false',
+        'detect_entities': 'false',
+        'tier': 'enhanced'
+    }
+    
+    # Read audio file
+    with open(audio_path, 'rb') as audio_file:
+        audio_data = audio_file.read()
+    
+    # Make API request to Deepgram
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            DEEPGRAM_API_URL,
+            headers=headers,
+            params=params,
+            data=audio_data
+        ) as response:
+            if response.status != 200:
+                error_text = await response.text()
+                raise Exception(f'Deepgram API error {response.status}: {error_text}')
+            
+            deepgram_result = await response.json()
+    
+    # Process Deepgram response into segments
+    if 'results' not in deepgram_result or not deepgram_result['results']['channels']:
+        raise Exception('Invalid Deepgram response format')
+    
+    channel = deepgram_result['results']['channels'][0]
+    alternatives = channel.get('alternatives', [])
+    
+    if not alternatives:
+        raise Exception('No transcription alternatives found')
+    
+    # Extract the best alternative
+    best_alternative = alternatives[0]
+    
+    # Build segments from paragraphs/utterances
+    segments = []
+    
+    # Try paragraphs first, fallback to utterances
+    paragraphs = best_alternative.get('paragraphs', {}).get('paragraphs', [])
+    if paragraphs:
+        for paragraph in paragraphs:
+            for sentence in paragraph.get('sentences', []):
+                segments.append({
+                    'start': sentence.get('start', 0.0),
+                    'end': sentence.get('end', 0.0),
+                    'text': sentence.get('text', '').strip()
+                })
+    else:
+        # Fallback to utterances
+        utterances = channel.get('utterances', [])
+        for utterance in utterances:
+            segments.append({
+                'start': utterance.get('start', 0.0),
+                'end': utterance.get('end', 0.0),
+                'text': utterance.get('transcript', '').strip()
+            })
+    
+    return {
+        'segments': segments,
+        'language': channel.get('detected_language', 'en'),
+        'confidence': best_alternative.get('confidence', 0.0)
+    }
+
+async def cleanup_temp_file(file_path: str):
+    """Clean up temporary file"""
+    try:
+        if os.path.exists(file_path):
+            os.unlink(file_path)
+            # Also clean up the parent directory if it's in temp
+            parent_dir = os.path.dirname(file_path)
+            if tempfile.gettempdir() in parent_dir:
+                try:
+                    os.rmdir(parent_dir)
+                except:
+                    pass  # Directory might not be empty
+    except Exception as e:
+        logging.warning(f"Failed to cleanup temp file {file_path}: {e}")
+
+# =================== Video Segment Selection Endpoint ===================
+
+class VideoSegmentSelectionRequest(BaseModel):
+    """Request model for video segment selection"""
+    userId: str = Field(..., description="User ID for session management")
+    sessionId: str = Field(..., description="Session ID for tracking")
+    youtubeUrl: str = Field(..., description="YouTube video URL to process")
+    processingMode: str = Field(..., description="Processing mode: 'marketing', 'meeting_notes', 'tutorial', 'highlights'")
+    targetDuration: Optional[int] = Field(60, description="Target total duration in seconds", ge=15, le=300)
+
+class VideoSegmentSelectionResponse(BaseModel):
+    """Response model for video segment selection"""
+    success: bool
+    sessionId: str
+    selectedSegments: List[Dict[str, Any]]
+    totalDuration: float
+    segmentCount: int
+    processingMode: str
+    executionTime: Optional[float] = None
+    error: Optional[str] = None
+
+@app.post("/custom/video/select-segments", response_model=VideoSegmentSelectionResponse)
+async def select_video_segments(request: VideoSegmentSelectionRequest):
+    """完整的视频片段选择流水线：YouTube URL → 音频下载 → Deepgram转录 → LLM片段选择"""
+    audio_path = None
+    try:
+        start_time = time.time()
+        logging.info(f"Starting video segment selection pipeline for: {request.youtubeUrl}")
+        
+        # Step 1: Download audio from YouTube
+        logging.info("Step 1: Downloading audio from YouTube...")
+        audio_path = await download_audio_from_youtube(request.youtubeUrl)
+        logging.info(f"Audio downloaded: {audio_path}")
+        
+        # Step 2: Transcribe with Deepgram
+        logging.info("Step 2: Transcribing audio with Deepgram...")
+        transcript_data = await transcribe_with_deepgram(audio_path)
+        logging.info(f"Transcription completed: {len(transcript_data['segments'])} segments")
+        
+        # Step 3: Create session with transcript data
+        try:
+            existing_session = await video_segment_runner.session_service.get_session(
+                app_name=APP_NAME,
+                user_id=request.userId,
+                session_id=request.sessionId
+            )
+            
+            if not existing_session:
+                # Create new session with transcript data
+                initial_state = {
+                    "youtube_url": request.youtubeUrl,
+                    "transcript_data": json.dumps(transcript_data),
+                    "processing_mode": request.processingMode,
+                    "target_duration": request.targetDuration
+                }
+                
+                await video_segment_runner.session_service.create_session(
+                    app_name=APP_NAME,
+                    user_id=request.userId,
+                    session_id=request.sessionId,
+                    state=initial_state
+                )
+                
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to handle session: {str(e)}")
+        
+        # Step 4: Construct message for the LLM agent
+        logging.info("Step 3: Running LLM analysis...")
+        user_message = f"""
+        Please analyze the following transcript data and select the most valuable segments for {request.processingMode} content.
+        
+        Target Duration: {request.targetDuration} seconds
+        Processing Mode: {request.processingMode}
+        Language: {transcript_data.get('language', 'en')}
+        Total Segments Available: {len(transcript_data['segments'])}
+        
+        Transcript Data:
+        {json.dumps(transcript_data, indent=2)}
+        
+        Please return a JSON array of selected segments with the exact format specified in your instructions.
+        Focus on selecting segments that work well for {request.processingMode} content.
+        """
+        
+        # Step 5: Execute the video segment selection agent
+        final_response_text = await get_final_response(
+            video_segment_runner,
+            request.userId,
+            request.sessionId,
+            user_message
+        )
+        
+        # Step 6: Parse the LLM response to extract selected segments
+        selected_segments = []
+        total_duration = 0
+        
+        try:
+            # Clean up the response and extract JSON
+            response_clean = final_response_text.strip()
+            
+            # Try to find JSON array in the response
+            if response_clean.startswith('['):
+                selected_segments = json.loads(response_clean)
+            else:
+                # Extract JSON from markdown code blocks or mixed text
+                import re
+                # Look for JSON array pattern
+                json_patterns = [
+                    r'```json\s*(\[.*?\])\s*```',  # Markdown JSON blocks
+                    r'```\s*(\[.*?\])\s*```',      # Generic code blocks
+                    r'(\[.*?\])'                    # Raw JSON arrays
+                ]
+                
+                for pattern in json_patterns:
+                    match = re.search(pattern, response_clean, re.DOTALL)
+                    if match:
+                        try:
+                            selected_segments = json.loads(match.group(1))
+                            break
+                        except:
+                            continue
+            
+            # Calculate total duration
+            if selected_segments:
+                total_duration = sum(
+                    segment.get('duration', segment.get('end', 0) - segment.get('start', 0)) 
+                    for segment in selected_segments
+                )
+                logging.info(f"LLM selected {len(selected_segments)} segments, total duration: {total_duration:.1f}s")
+                    
+        except Exception as e:
+            logging.error(f"Failed to parse LLM response: {e}")
+            logging.error(f"Raw response: {final_response_text}")
+            selected_segments = []
+            total_duration = 0
+        
+        execution_time = time.time() - start_time
+        
+        return VideoSegmentSelectionResponse(
+            success=len(selected_segments) > 0,
+            sessionId=request.sessionId,
+            selectedSegments=selected_segments,
+            totalDuration=total_duration,
+            segmentCount=len(selected_segments),
+            processingMode=request.processingMode,
+            executionTime=execution_time,
+            error=None if len(selected_segments) > 0 else "No segments were selected by the LLM"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Pipeline failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Video segment selection pipeline failed: {str(e)}")
+    finally:
+        # Clean up temporary audio file
+        if audio_path:
+            await cleanup_temp_file(audio_path)
 
 if __name__ == "__main__":
     # 使用uvicorn启动服务器，支持Render平台的PORT环境变量

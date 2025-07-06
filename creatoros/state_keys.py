@@ -30,3 +30,11 @@ STATE_RECOMMENDED_PRICING_STRATEGY = "recommended_pricing_strategy"
 STATE_NEGOTIATION_TACTIC_SUMMARY = "negotiation_tactic_summary"
 STATE_GENERATED_PROPOSAL_EMAIL = "generated_proposal_email"
 STATE_SESSION_STATUS = "session_status"
+
+# ========================================
+# 5. Video Content Processing State - "视频内容处理状态"
+# ========================================
+STATE_YOUTUBE_URL = "youtube_url"
+STATE_VIDEO_TRANSCRIPT = "video_transcript"
+STATE_VIDEO_SEGMENTS = "video_segments"
+STATE_FINAL_VIDEO_PATH = "final_video_path"
